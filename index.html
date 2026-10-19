@@ -275,7 +275,7 @@ pre.capsule{font-family:var(--f-mono);font-size:11.5px;background:var(--bg);bord
       <div class="controls" id="type-chips"></div>
       <div class="dock">
         <div class="grp"><label for="t-implicit">자동 근접</label><input type="checkbox" id="t-implicit" checked>
-          <input type="range" id="t-thr" min="0.06" max="0.5" step="0.01" value="0.14" aria-label="자동 근접 임계값"><span class="mono" id="t-thr-v">0.14</span></div>
+          <input type="range" id="t-thr" min="0.04" max="0.5" step="0.01" value="0.07" aria-label="자동 근접 임계값"><span class="mono" id="t-thr-v">0.07</span></div>
         <div class="grp"><label for="t-tension">장력 굵기</label><input type="checkbox" id="t-tension" checked></div>
         <button class="btn small" id="btn-reheat" type="button">재배치</button>
         <button class="btn small" id="btn-unpin" type="button">고정 해제</button>
@@ -351,14 +351,15 @@ const ALIAS = {support:"supports",supports:"supports","지지":"supports",
 const CATS = {Bond:{label:"채권·금리",animal:"땃쥐",css:"--c-bond"},Credit:{label:"신용·은행",animal:"곰",css:"--c-credit"},
   Currency:{label:"통화·FX",animal:"물범",css:"--c-fx"},Macro:{label:"거시",animal:"부엉이",css:"--c-macro"},Other:{label:"기타",animal:"병아리",css:"--c-other"}};
 const CONFLICT_REPULSION = 5;   // 반박 쌍의 추가 척력 배수 → 당기면서 밀어내 장력이 남음
-const REP = 140;                // 전역 척력 세기
+const REP = 220;                // 전역 척력 세기
+const AUTO_K = 2;               // 노드당 남길 자동 근접 연결 수 (가장 비슷한 순)
 
 /* ======================= 상태 ======================= */
 const S = {
   token:null, repo:null, branch:"main", prefix:"vaults/", demo:false,
   icons:new Map(), notes:new Map(), nodes:[], nodeById:new Map(), edges:[], active:[],
   conflictPairs:new Set(), gaps:null,
-  on:new Set(Object.keys(TYPES)), implicit:true, thr:.14, tensionView:true,
+  on:new Set(Object.keys(TYPES)), implicit:true, thr:.07, tensionView:true,
   sel:null, hover:null, q:"", tab:"vault", bodyOpen:false,
   view:{x:0,y:0,k:1}, alpha:1, alphaTarget:0, colors:{}
 };
@@ -444,17 +445,22 @@ function buildGraph(){
       explicitPairs.add(pairKey(n.id,t));
     }
   }
-  // 자동 근접: 키워드·토픽·참고문헌·방법론 중첩
+  // 자동 근접: 키워드·토픽·참고문헌·방법론 중첩. 노드마다 가장 가까운 AUTO_K개만 남겨 그물처럼 엉키지 않게 함
+  const cand=[];
   for(let i=0;i<notes.length;i++) for(let j=i+1;j<notes.length;j++){
     const a=notes[i], b=notes[j];
     if(explicitPairs.has(pairKey(a.id,b.id))) continue;
-    const jk=jacc(a.kw,b.kw), jt=jacc(a.topics,b.topics), sr=shared(a.refs,b.refs).length, sm=shared(a.methods,b.methods);
-    const w=.5*jk+.3*jt+.2*Math.min(1,sr/3);
-    if(w<.04 && !sm.length) continue;
-    const type = sm.length ? "same_method" : "related";
-    S.edges.push(mkEdge(S.nodeById.get(a.id),S.nodeById.get(b.id),type,Math.max(w,sm.length?.25:0),false,
-      {why:{kw:shared(a.kw,b.kw),topics:shared(a.topics,b.topics),refs:sr,methods:sm}}));
+    const jk=jacc(a.kw,b.kw), jt=jacc(a.topics,b.topics), sr=shared(a.refs,b.refs).length, sm=shared(a.methods,b.methods), jm=jacc(a.methods,b.methods);
+    const w=.5*jk+.3*jt+.15*Math.min(1,sr/3)+.05*jm;
+    if(w<.04) continue;
+    // '패널 회귀'처럼 흔한 방법론 하나만 겹치는 경우는 방법론 연결로 보지 않음
+    const type = (jm>=.5 && w>=.1) ? "same_method" : "related";
+    cand.push({a,b,w,type,why:{kw:shared(a.kw,b.kw),topics:shared(a.topics,b.topics),refs:sr,methods:sm}});
   }
+  const keep=new Set(), byNode=new Map(notes.map(n=>[n.id,[]]));
+  for(const c of cand){ byNode.get(c.a.id).push(c); byNode.get(c.b.id).push(c); }
+  for(const list of byNode.values()){ list.sort((x,y)=>y.w-x.w); list.slice(0,AUTO_K).forEach(c=>keep.add(c)); }
+  for(const c of keep) S.edges.push(mkEdge(S.nodeById.get(c.a.id),S.nodeById.get(c.b.id),c.type,c.w,false,{why:c.why}));
   computeGaps(notes, doiToId);
   applyFilters();
 }
@@ -468,7 +474,7 @@ function applyFilters(){
   S.conflictPairs=new Set(S.active.filter(e=>e.type==="contradicts").map(e=>e.a.id+"|"+e.b.id));
   for(const n of S.nodes) n.deg=0;
   for(const e of S.active){ e.a.deg++; e.b.deg++; }
-  for(const n of S.nodes) n.r = n.ghost ? 9 : 12+2.8*Math.sqrt(n.deg);
+  for(const n of S.nodes) n.r = n.ghost ? 9 : Math.min(20, 11+2.2*Math.sqrt(n.deg));
   reheat(.6); renderStat(); if(S.tab!=="vault") renderPane();
 }
 function computeGaps(notes, doiToId){
@@ -494,7 +500,7 @@ function tick(){
         const d=Math.sqrt(d2);
         let m=1; if(S.conflictPairs.has(p.id+"|"+q.id)||S.conflictPairs.has(q.id+"|"+p.id)) m=CONFLICT_REPULSION;
         let f=REP*m*a/d;
-        const minD=p.r+q.r+14; if(d<minD) f+=(minD-d)*.5;
+        const minD=p.r+q.r+34; if(d<minD) f+=(minD-d)*.5;
         const fx=dx/d*f, fy=dy/d*f;
         p.vx-=fx*.5; p.vy-=fy*.5; q.vx+=fx*.5; q.vy+=fy*.5;
       }
@@ -647,11 +653,16 @@ function draw(){
   }
   // labels
   cx.font=`${12/k}px ${getComputedStyle(document.body).fontFamily}`; cx.textBaseline="middle";
-  for(const n of S.nodes){
-    const show = k>1.15 || n.id===S.sel || n===S.hover || (nb&&nb.has(n.id)) || (S.q&&matches(n)) || (!n.ghost && n.deg>=4);
-    if(!show || fade(n)) continue;
+  // 겹치는 라벨은 건너뜀: 선택·호버·이웃·검색 결과를 먼저, 그다음 연결이 많은 노드 순
+  const prio=n=> (n.id===S.sel||n===S.hover)?3 : (nb&&nb.has(n.id))||(S.q&&matches(n))?2 : n.ghost?0:1;
+  const placed=[], lh=15/k;
+  for(const n of [...S.nodes].sort((a,b)=>prio(b)-prio(a)||b.deg-a.deg)){
+    if(fade(n)) continue;
     let t = n.ghost ? n.label : n.note.short; if(t.length>26) t=t.slice(0,25)+"…";
-    cx.globalAlpha=n.ghost?.75:1; cx.lineWidth=3/k; cx.strokeStyle=C.field; cx.strokeText(t,n.x+n.r*1.25+4/k,n.y); cx.fillStyle=C.ink; cx.fillText(t,n.x+n.r*1.25+4/k,n.y);
+    const x=n.x+n.r*1.25+4/k, y=n.y, w=cx.measureText(t).width, box={x0:x-2/k,x1:x+w+2/k,y0:y-lh/2,y1:y+lh/2};
+    if(prio(n)<2 && placed.some(b=>box.x0<b.x1&&box.x1>b.x0&&box.y0<b.y1&&box.y1>b.y0)) continue;
+    placed.push(box);
+    cx.globalAlpha=n.ghost?.75:1; cx.lineWidth=3/k; cx.strokeStyle=C.field; cx.strokeText(t,x,y); cx.fillStyle=C.ink; cx.fillText(t,x,y);
   }
   cx.globalAlpha=1; S.dirty=false;
 }
