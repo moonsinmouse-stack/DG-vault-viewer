@@ -55,6 +55,7 @@ button,input,select{font:inherit;color:inherit}
 
 /* ---------- 마스코트 ---------- */
 .shrew{display:block;overflow:visible}
+img.shrew{object-fit:contain}
 .shrew .bob{transform-origin:70px 100px;animation:bob 2.6s ease-in-out infinite}
 .shrew .blink{transform-origin:50px 53px;animation:blink 4.2s infinite}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
@@ -327,7 +328,7 @@ pre.capsule{font-family:var(--f-mono);font-size:11.5px;background:var(--bg);bord
 <script>
 "use strict";
 /* ======================= 마스코트: 사서 땃쥐 (오리지널) ======================= */
-const SHREW=`<svg class="shrew" viewBox="0 0 140 120" aria-hidden="true">
+const SHREW_SVG=`<svg class="shrew" viewBox="0 0 140 120" aria-hidden="true">
 <ellipse cx="74" cy="113" rx="40" ry="5" fill="var(--shadow)"/>
 <g class="bob" stroke="var(--outline)" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round">
 <path d="M104 96 C122 100 134 92 132 76" fill="none"/>
@@ -344,7 +345,11 @@ const SHREW=`<svg class="shrew" viewBox="0 0 140 120" aria-hidden="true">
 <g transform="rotate(-8 57 88)"><rect x="40" y="76" width="34" height="24" rx="4" fill="var(--accent)"/><rect x="43.5" y="78.5" width="27" height="19" rx="2" fill="#FFFFFF" stroke-width="1.6"/><path d="M57 78.5 v19" stroke-width="1.8"/><path d="M47 84h7M47 89h7M60 84h7M60 89h5" stroke="#D9C8BA" stroke-width="1.8"/></g>
 <ellipse cx="42" cy="85" rx="5.5" ry="4.5" fill="var(--shrew)"/><ellipse cx="73" cy="82" rx="5.5" ry="4.5" fill="var(--shrew)"/>
 </g></svg>`;
-document.querySelectorAll("[data-shrew]").forEach(el=>el.outerHTML=SHREW);
+// 마스코트: 비공개 저장소 theme/mascot.png가 있으면 로그인 후 받아 이 브라우저에 기억하고 땃쥐 대신 사용
+// (store는 아래에서 정의되므로 localStorage를 직접 읽음)
+const mascot=()=>{ let u=null; try{ u=localStorage.getItem("vault.mascot"); }catch(e){} return u ? `<img class="shrew mascot-img" src="${u}" alt="">` : SHREW_SVG; };
+function refreshMascot(){ document.querySelectorAll(".shrew").forEach(el=>el.outerHTML=mascot()); }
+document.querySelectorAll("[data-shrew]").forEach(el=>el.outerHTML=mascot());
 
 /* ======================= 내 이미지 칸 ======================= */
 // 로그인 캐릭터: 브라우저 localStorage에만 저장 (최대 320px로 줄여 저장)
@@ -353,7 +358,7 @@ function shrinkToDataURL(file,max=320){ return new Promise((ok,no)=>{ const fr=n
   c.getContext("2d").drawImage(im,0,0,c.width,c.height); ok(c.toDataURL("image/png")); }; im.src=fr.result; }; fr.readAsDataURL(file); }); }
 function renderHeroes(){
   const hs=[store.get("vault.hero1"),store.get("vault.hero2")].filter(Boolean), box=document.getElementById("heroes");
-  box.innerHTML = hs.length ? hs.map((u,i)=>`<img src="${u}" alt="로그인 캐릭터 ${i+1}">`).join("") : SHREW;
+  box.innerHTML = hs.length ? hs.map((u,i)=>`<img src="${u}" alt="로그인 캐릭터 ${i+1}">`).join("") : mascot();
   for(const i of [1,2]){ const u=store.get("vault.hero"+i), el=document.getElementById(`hero-${i}-prev`); el.innerHTML = u?`<img src="${u}" alt="">`:`메인 ${i}`; }
 }
 for(const i of [1,2]) document.getElementById("hero-"+i).addEventListener("change",async e=>{
@@ -910,7 +915,7 @@ function renderVault(P){
   const node=S.sel && S.nodeById.get(S.sel);
   if(!node){
     const cats=Object.entries(CATS).map(([k,c])=>`<span>${S.mode==="shape"?shapeSVG(c.shape,c.css):`<span class="dot" style="background:var(${c.css})"></span>`}${esc(c.label)}</span>`).join(" ");
-    P.innerHTML=`<div class="empty"><div class="greet">${SHREW}<div class="bubble">노드를 콕 눌러 보세요! 논문 노트를 펼쳐 드릴게요.</div></div>
+    P.innerHTML=`<div class="empty"><div class="greet">${mascot()}<div class="bubble">노드를 콕 눌러 보세요! 논문 노트를 펼쳐 드릴게요.</div></div>
       <p>끌어당기면 연결된 노트들이 실처럼 따라오고, 두 번 누르면 그 자리에 고정돼요. 휠로 확대·축소할 수 있어요. 자동 계산된 유사도 선은 노드를 선택했을 때만 보입니다.</p>
       <div class="note">선 굵기는 <strong>장력</strong>입니다. 관계가 끌어당기는데 다른 힘(반박·한계 제기 쌍의 척력, 주변 클러스터)에 막혀 늘어나 있을수록 굵어집니다. 진위가 아니라 <em>먼저 들여다볼 곳</em>을 가리킵니다.</div>
       <h3>범주</h3><div class="meta">${cats}</div>
@@ -1072,11 +1077,12 @@ async function loadIcons(notes){
     for(const [cat,path] of Object.entries(th.categories||{})) if(CATS[cat]&&path) want.set("cat:"+cat,String(path));
     const lg=arr(th.login).slice(0,2);
     for(let i=0;i<lg.length;i++) want.set("login:"+(i+1),String(lg[i]));
+    if(th.mascot) want.set("mascot",String(th.mascot));
   }catch(e){ /* theme.json 없음 → 파일 이름 규칙으로 찾음 */ }
   // 파일 이름 규칙 (theme.json에 없는 칸만 채움): theme/login-1.png, theme/bond.png, theme/notes/<노트id>.png
   const IMG=/\.(png|webp|gif|jpe?g)$/i, byStem=new Map();
   for(const path of (S.treePaths||[])) if(path.startsWith("theme/") && IMG.test(path)) byStem.set(path.slice(6).replace(IMG,"").toLowerCase(),path);
-  const NAMES={"login:1":["login-1"],"login:2":["login-2"]};
+  const NAMES={"login:1":["login-1"],"login:2":["login-2"],"mascot":["mascot"]};
   for(const k of Object.keys(CATS)) NAMES["cat:"+k]=k==="Currency"?["currency","fx"]:[k.toLowerCase()];
   for(const [key,stems] of Object.entries(NAMES)) if(!want.has(key)){ const hit=stems.map(x=>byStem.get(x)).find(Boolean); if(hit) want.set(key,hit); }
   for(const n of notes){ const hit=byStem.get("notes/"+n.id.toLowerCase()); if(hit && !n.fm.icon) want.set("note:"+n.id,hit); }
@@ -1084,6 +1090,7 @@ async function loadIcons(notes){
   await Promise.all([...want].map(async([key,path])=>{
     try{ const blob=await (await gh(base+encPath(path)+ref,"application/vnd.github.raw+json")).blob();
       if(key.startsWith("login:")){ const f=new File([blob],"x"); store.set("vault.hero"+key.slice(6), await shrinkToDataURL(f)); return; }
+      if(key==="mascot"){ store.set("vault.mascot", await shrinkToDataURL(new File([blob],"x"),240)); refreshMascot(); return; }
       const bmp=await createImageBitmap(blob); S.icons.set(key,bmp);
     }catch(e){ console.warn("이미지 로드 실패",path,e.message); }
   }));
