@@ -18,8 +18,8 @@
 :root{
   --bg:#FFFCF9; --surface:#FFFFFF; --field:#FBF7F2; --dotgrid:#EDE2D6; --ink:#4E3B31; --muted:#9A8678; --line:#E8DACD;
   --accent:#EC8294; --accent-soft:#FCE7EA; --accent-ink:#FFFFFF; --warn:#D9822B; --shadow:rgba(120,85,60,.16);
-  --r-sup:#58AA7B; --r-con:#E35A6B; --r-ext:#6890D6; --r-met:#A47FD6; --r-cmp:#DE9E35; --r-rel:#CDBFB2;
-  --c-bond:#A9CBEB; --c-credit:#F3D08E; --c-fx:#A6D9C3; --c-macro:#CDB6E3; --c-other:#DDD2C6;
+  --r-sup:#58AA7B; --r-con:#E35A6B; --r-ext:#6890D6; --r-met:#A47FD6; --r-cmp:#DE9E35; --r-rel:#CDBFB2; --r-lim:#D9663A; --r-cite:#8C7464;
+  --c-bond:#A9CBEB; --c-credit:#F3D08E; --c-fx:#A6D9C3; --c-macro:#CDB6E3; --c-other:#DDD2C6; --c-x1:#F2B8A2; --c-x2:#B9D98C; --c-x3:#F5C6DE; --c-x4:#9FD3E0; --c-x5:#E3D27C; --c-x6:#C4B5F0;
   --outline:#5B4033; --face:#5B4033; --blush:#F4A1AD; --belly:#FFF5E8; --beak:#F0A458;
   --shrew:#C9AA95; --shrew-belly:#FBEADB; --shrew-nose:#F29AAA;
   --f-display:"Jua","Gowun Dodum","Apple SD Gothic Neo",system-ui,sans-serif;
@@ -29,16 +29,16 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#211B18; --surface:#2B2420; --field:#251F1B; --dotgrid:#3A302A; --ink:#F6ECE4; --muted:#B6A597; --line:#45392F;
   --accent:#F49CAB; --accent-soft:#4A2E33; --accent-ink:#2A1A1D; --warn:#F0A65C; --shadow:rgba(0,0,0,.35);
-  --r-sup:#73C995; --r-con:#F27384; --r-ext:#86AAEB; --r-met:#BE9CEB; --r-cmp:#EDB65A; --r-rel:#5F5249;
-  --c-bond:#A9CBEB; --c-credit:#F3D08E; --c-fx:#A6D9C3; --c-macro:#CDB6E3; --c-other:#CFC3B6;
+  --r-sup:#73C995; --r-con:#F27384; --r-ext:#86AAEB; --r-met:#BE9CEB; --r-cmp:#EDB65A; --r-rel:#5F5249; --r-lim:#F08A5E; --r-cite:#A8937F;
+  --c-bond:#A9CBEB; --c-credit:#F3D08E; --c-fx:#A6D9C3; --c-macro:#CDB6E3; --c-other:#CFC3B6; --c-x1:#F2B8A2; --c-x2:#B9D98C; --c-x3:#F5C6DE; --c-x4:#9FD3E0; --c-x5:#E3D27C; --c-x6:#C4B5F0;
   --outline:#3A2920; --face:#3A2920; --blush:#F4A1AD; --belly:#FFF5E8; --beak:#F0A458;
   --shrew:#C9AA95; --shrew-belly:#FBEADB; --shrew-nose:#F29AAA;
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#211B18; --surface:#2B2420; --field:#251F1B; --dotgrid:#3A302A; --ink:#F6ECE4; --muted:#B6A597; --line:#45392F;
   --accent:#F49CAB; --accent-soft:#4A2E33; --accent-ink:#2A1A1D; --warn:#F0A65C; --shadow:rgba(0,0,0,.35);
-  --r-sup:#73C995; --r-con:#F27384; --r-ext:#86AAEB; --r-met:#BE9CEB; --r-cmp:#EDB65A; --r-rel:#5F5249;
-  --c-bond:#A9CBEB; --c-credit:#F3D08E; --c-fx:#A6D9C3; --c-macro:#CDB6E3; --c-other:#CFC3B6;
+  --r-sup:#73C995; --r-con:#F27384; --r-ext:#86AAEB; --r-met:#BE9CEB; --r-cmp:#EDB65A; --r-rel:#5F5249; --r-lim:#F08A5E; --r-cite:#A8937F;
+  --c-bond:#A9CBEB; --c-credit:#F3D08E; --c-fx:#A6D9C3; --c-macro:#CDB6E3; --c-other:#CFC3B6; --c-x1:#F2B8A2; --c-x2:#B9D98C; --c-x3:#F5C6DE; --c-x4:#9FD3E0; --c-x5:#E3D27C; --c-x6:#C4B5F0;
   --outline:#3A2920; --face:#3A2920; --blush:#F4A1AD; --belly:#FFF5E8; --beak:#F0A458;
   --shrew:#C9AA95; --shrew-belly:#FBEADB; --shrew-nose:#F29AAA;
   color-scheme:dark}
@@ -132,7 +132,32 @@ canvas#field.dragging{cursor:grabbing}
 .dock > *{pointer-events:auto}
 .dock .grp{display:flex;gap:6px;align-items:center;background:var(--surface);border:2px solid var(--line);border-radius:999px;padding:4px 12px;box-shadow:0 2px 0 var(--line)}
 .dock input[type=range]{width:100px}
-.legend-cat{display:flex;gap:10px;flex-wrap:wrap}
+.legend-cat{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.legend-cat svg{vertical-align:-2px;margin-right:4px}
+.dock select{border:2px solid var(--line);border-radius:999px;background:var(--surface);padding:1px 6px}
+.rcard{border:2px solid var(--line);border-radius:16px;padding:10px 12px;display:grid;gap:6px;background:var(--surface)}
+.rcards{display:grid;gap:8px}
+.rhead{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pill{font-family:var(--f-display);font-size:12.5px;padding:1px 10px;border-radius:999px;border:1.5px solid var(--pc);color:var(--pc);white-space:nowrap}
+.rhead .dir{color:var(--muted)}
+.rhead .conf{font-size:12px;color:var(--muted);margin-left:auto;white-space:nowrap}
+.rcard p{margin:0;font-size:13.5px}
+.rcard .owner{font-size:11.5px;color:var(--muted)}
+.rcard details summary{cursor:pointer;color:var(--accent);font-size:12.5px;width:max-content}
+.ev{background:var(--bg);border-radius:10px;padding:8px 10px;font-size:12.5px;margin-top:6px;display:grid;gap:4px}
+.ev small{color:var(--muted)}
+ul.auto{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:13px}
+ul.auto li{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
+ul.auto .k{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.lwrap{overflow-x:auto}
+table.ltable{border-collapse:collapse;width:100%;font-size:13px}
+.ltable th{text-align:left;font-weight:400;font-family:var(--f-display);color:var(--muted);padding:6px 6px;border-bottom:2px solid var(--line);white-space:nowrap}
+.ltable th button{background:none;border:0;padding:0;cursor:pointer;color:inherit;font:inherit}
+.ltable th button[aria-sort]{color:var(--accent)}
+.ltable td{padding:7px 6px;border-bottom:2px dotted var(--line);vertical-align:top}
+.ltable td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.ltable tr[data-go]{cursor:pointer}
+.ltable tr[data-go]:hover td{background:var(--bg)}
 .dot{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-right:4px;border:2px solid var(--outline)}
 .tip{position:absolute;pointer-events:none;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:7px 11px;font-size:12.5px;max-width:280px;box-shadow:0 4px 0 var(--line)}
 
@@ -274,12 +299,15 @@ pre.capsule{font-family:var(--f-mono);font-size:11.5px;background:var(--bg);bord
       <canvas id="field" aria-label="Vault 관계 장력 그래프"></canvas>
       <div class="controls" id="type-chips"></div>
       <div class="dock">
-        <div class="grp"><label for="t-implicit">자동 근접</label><input type="checkbox" id="t-implicit" checked>
-          <input type="range" id="t-thr" min="0.04" max="0.5" step="0.01" value="0.07" aria-label="자동 근접 임계값"><span class="mono" id="t-thr-v">0.07</span></div>
+        <div class="grp"><label for="t-auto">자동 선</label><select id="t-auto"><option value="sel" selected>선택 시만</option><option value="all">항상</option><option value="off">끔</option></select>
+          <input type="range" id="t-thr" min="0.06" max="0.6" step="0.01" value="0.2" aria-label="유사도 임계값"><span class="mono" id="t-thr-v">0.20</span></div>
+        <div class="grp"><label for="t-cluster">범주별 모으기</label><input type="checkbox" id="t-cluster" checked></div>
         <div class="grp"><label for="t-tension">장력 굵기</label><input type="checkbox" id="t-tension" checked></div>
         <button class="btn small" id="btn-reheat" type="button">재배치</button>
         <button class="btn small" id="btn-unpin" type="button">고정 해제</button>
         <button class="btn small" id="btn-fit" type="button">전체 보기</button>
+        <div class="grp"><label for="t-mode">모양</label><select id="t-mode"><option value="dot" selected>점</option><option value="shape">도형</option><option value="animal">동물</option></select></div>
+        <div class="grp"><label for="t-ghost">공백 문헌</label><select id="t-ghost"><option value="0">끔</option><option value="1">1회+</option><option value="2" selected>2회+</option><option value="3">3회+</option></select></div>
         <div class="grp legend-cat" id="legend-cat"></div>
       </div>
       <div class="tip" id="tip" hidden></div>
@@ -289,6 +317,7 @@ pre.capsule{font-family:var(--f-mono);font-size:11.5px;background:var(--bg);bord
         <button role="tab" aria-selected="true" data-tab="vault" id="tab-vault">Vault</button>
         <button role="tab" aria-selected="false" data-tab="tension" id="tab-tension">장력</button>
         <button role="tab" aria-selected="false" data-tab="gaps" id="tab-gaps">공백</button>
+        <button role="tab" aria-selected="false" data-tab="list" id="tab-list">목록</button>
       </div>
       <div class="pane" id="pane"></div>
     </aside>
@@ -336,30 +365,55 @@ document.getElementById("hero-reset").onclick=()=>{ store.del("vault.hero1"); st
 
 /* ======================= 설정 ======================= */
 const TYPES = {
-  supports:    {label:"지지",          css:"--r-sup", L:70,  k:.050},
-  contradicts: {label:"반박·충돌",      css:"--r-con", L:60,  k:.070},
-  extends:     {label:"확장",          css:"--r-ext", L:80,  k:.045},
-  same_method: {label:"동일 방법론",     css:"--r-met", L:110, k:.030},
-  complements: {label:"보완",          css:"--r-cmp", L:95,  k:.035},
-  related:     {label:"키워드 근접(자동)", css:"--r-rel", L:140, k:.015}
+  supports:    {label:"지지",         css:"--r-sup",  L:70,  k:.050},
+  extends:     {label:"확장",         css:"--r-ext",  L:80,  k:.045},
+  complements: {label:"보완",         css:"--r-cmp",  L:95,  k:.035},
+  same_method: {label:"같은 방법론",   css:"--r-met",  L:110, k:.030},
+  limits:      {label:"한계 제기",     css:"--r-lim",  L:65,  k:.060, dash:[7,4]},
+  contradicts: {label:"반박",         css:"--r-con",  L:60,  k:.070},
+  cites:       {label:"인용(자동)",    css:"--r-cite", L:120, k:.020},
+  related:     {label:"유사도(자동)",  css:"--r-rel",  L:140, k:.015}
 };
 const ALIAS = {support:"supports",supports:"supports","지지":"supports",
-  contradict:"contradicts",contradicts:"contradicts",refutes:"contradicts",conflicts:"contradicts","반박":"contradicts","충돌":"contradicts",
   extend:"extends",extends:"extends","확장":"extends",
-  same_method:"same_method","same-method":"same_method",method:"same_method","방법론":"same_method","동일 방법론":"same_method",
-  complement:"complements",complements:"complements","보완":"complements",related:"related"};
-const CATS = {Bond:{label:"채권·금리",animal:"땃쥐",css:"--c-bond"},Credit:{label:"신용·은행",animal:"곰",css:"--c-credit"},
-  Currency:{label:"통화·FX",animal:"물범",css:"--c-fx"},Macro:{label:"거시",animal:"부엉이",css:"--c-macro"},Other:{label:"기타",animal:"병아리",css:"--c-other"}};
-const CONFLICT_REPULSION = 5;   // 반박 쌍의 추가 척력 배수 → 당기면서 밀어내 장력이 남음
-const REP = 220;                // 전역 척력 세기
-const AUTO_K = 2;               // 노드당 남길 자동 근접 연결 수 (가장 비슷한 순)
+  complement:"complements",complements:"complements","보완":"complements",
+  same_method:"same_method","same-method":"same_method",method:"same_method","방법론":"same_method","같은 방법론":"same_method","동일 방법론":"same_method",
+  limit:"limits",limits:"limits",limitation:"limits",limitations:"limits",critique:"limits",critiques:"limits",qualifies:"limits","한계":"limits","한계 제기":"limits","한계제기":"limits",
+  contradict:"contradicts",contradicts:"contradicts",refutes:"contradicts",refute:"contradicts",conflicts:"contradicts","반박":"contradicts","충돌":"contradicts",
+  cite:"cites",cites:"cites","인용":"cites",related:"related"};
+// 반발 배수: 당기는 관계와 함께 밀어내 정지 상태에서도 장력이 남게 함
+const REPEL = {contradicts:5, limits:2.5};
+const REP = 140;                // 전역 척력 세기
+// 범주: 기본 5개 + 노트에 새 범주가 나오면 자동 추가 (색·동물·도형 순환 배정)
+const BASE_CATS = {
+  Bond:    {label:"채권·금리", kind:"shrew", css:"--c-bond",   shape:"circle"},
+  Credit:  {label:"신용·은행", kind:"bear",  css:"--c-credit", shape:"square"},
+  Currency:{label:"통화·FX",   kind:"seal",  css:"--c-fx",     shape:"diamond"},
+  Macro:   {label:"거시",      kind:"owl",   css:"--c-macro",  shape:"triangle"},
+  Other:   {label:"기타",      kind:"chick", css:"--c-other",  shape:"hexagon"}
+};
+const KIND_NAME = {shrew:"땃쥐", bear:"곰", seal:"물범", owl:"부엉이", chick:"병아리"};
+const KINDS = ["shrew","bear","seal","owl","chick"];
+const SHAPES = ["pentagon","circle","square","diamond","triangle","hexagon"];
+const EXTRA_CSS = ["--c-x1","--c-x2","--c-x3","--c-x4","--c-x5","--c-x6"];
+let CATS = {};
+function resetCats(){ CATS = JSON.parse(JSON.stringify(BASE_CATS)); for(const c of Object.values(CATS)) c.animal = KIND_NAME[c.kind]; }
+resetCats();
+function ensureCat(key){
+  if(CATS[key]) return key;
+  const i = Object.keys(CATS).length - Object.keys(BASE_CATS).length;
+  const kind = KINDS[(i+1) % KINDS.length];
+  CATS[key] = {label:(S.catLabels&&S.catLabels[key])||key, kind, animal:KIND_NAME[kind], css:EXTRA_CSS[i % EXTRA_CSS.length], shape:SHAPES[i % SHAPES.length], auto:true};
+  return key;
+}
 
 /* ======================= 상태 ======================= */
 const S = {
   token:null, repo:null, branch:"main", prefix:"vaults/", demo:false,
   icons:new Map(), notes:new Map(), nodes:[], nodeById:new Map(), edges:[], active:[],
-  conflictPairs:new Set(), gaps:null,
-  on:new Set(Object.keys(TYPES)), implicit:true, thr:.07, tensionView:true,
+  gaps:null,
+  on:new Set(Object.keys(TYPES)), implicit:true, autoShow:"sel", cluster:true, thr:.2, tensionView:true, ghostMin:2, mode:"dot", catLabels:{},
+  repel:new Map(), refLabel:new Map(), listSort:{key:"year",dir:-1},
   sel:null, hover:null, q:"", tab:"vault", bodyOpen:false,
   view:{x:0,y:0,k:1}, alpha:1, alphaTarget:0, colors:{}
 };
@@ -374,11 +428,13 @@ const store = {
 
 /* ======================= 노트 파싱 ======================= */
 function normCat(fm){
-  const raw = String(fm.category || (fm.source && fm.source.file) || "");
-  const m = raw.match(/\(?\s*(Bond|Credit|Currency|Fx|FX|Macro)\s*\)?/i);
-  if(!m) return "Other";
-  const k = m[1].toLowerCase();
-  return k==="bond"?"Bond":k==="credit"?"Credit":(k==="currency"||k==="fx")?"Currency":"Macro";
+  const known = k => { const x=String(k).trim().toLowerCase();
+    return x==="bond"?"Bond":x==="credit"?"Credit":(x==="currency"||x==="fx")?"Currency":x==="macro"?"Macro":(x==="other"||x==="기타")?"Other":null; };
+  if(fm.category){ const c=String(fm.category).replace(/[()]/g,"").trim(); if(c) return known(c) || c; }
+  const file = String((fm.source && fm.source.file) || "");
+  const m = file.match(/^\s*\(([^)]+)\)/);
+  if(m){ const c=m[1].trim(); return known(c) || c; }
+  return "Other";
 }
 const lc = a => arr(a).map(x=>String(x).trim().toLowerCase()).filter(Boolean);
 function refKey(r){
@@ -404,7 +460,7 @@ function parseNote(path, raw){
     year: fm.year ?? "",
     access: String(fm.access || "private"),
     kw: lc(fm.keywords), topics: lc(fm.topics), methods: lc(fm.methods),
-    refs: arr(fm.references).map(refKey).filter(Boolean),
+    refs: arr(fm.references).map(refKey).filter(Boolean), refsRaw: arr(fm.references),
     doi: fm.doi ? "doi:"+String(fm.doi).toLowerCase().replace(/^doi:/,"") : null,
     rels: arr(fm.relations)
   };
@@ -417,51 +473,78 @@ function shared(a,b){ const A=new Set(a); return [...new Set(b)].filter(x=>A.has
 function buildGraph(){
   const notes=[...S.notes.values()];
   const old=new Map(S.nodes.map(n=>[n.id,n]));
-  S.nodes=[]; S.nodeById=new Map(); S.edges=[];
+  S.nodes=[]; S.nodeById=new Map(); S.edges=[]; S.refLabel=new Map();
   const catIdx=Object.keys(CATS);
   for(const n of notes){
-    const o=old.get(n.id), ang=catIdx.indexOf(n.cat)*2*Math.PI/catIdx.length+(Math.random()-.5)*.9, rad=140+Math.random()*120;
+    const o=old.get(n.id), ang=Math.max(0,catIdx.indexOf(n.cat))*2*Math.PI/catIdx.length+(Math.random()-.5)*.9, rad=140+Math.random()*120;
     const node={id:n.id, note:n, ghost:false, x:o?o.x:Math.cos(ang)*rad, y:o?o.y:Math.sin(ang)*rad, vx:0, vy:0, pinned:o?o.pinned:false, deg:0};
     S.nodes.push(node); S.nodeById.set(n.id,node);
   }
+  // 참고문헌 표시명 (제목·연도가 적힌 항목에서 수집)
+  for(const n of notes) for(const r of n.refsRaw){ if(r && typeof r==="object" && r.title){ const k=refKey(r); if(k && !S.refLabel.has(k)) S.refLabel.set(k, r.title+(r.year?` (${r.year})`:"")); } }
+  // 참조 → Vault 노트 해석: doi, id, 제목
   const doiToId=new Map(notes.filter(n=>n.doi).map(n=>[n.doi,n.id]));
+  const idLower=new Map(notes.map(n=>[n.id.toLowerCase(),n.id]));
+  const titleToId=new Map(notes.map(n=>[n.title.trim().toLowerCase(),n.id]));
+  const resolve=k=>{ if(!k) return null; if(doiToId.has(k)) return doiToId.get(k); if(idLower.has(k)) return idLower.get(k); if(titleToId.has(k)) return titleToId.get(k); return null; };
   const pairKey=(a,b)=>a<b?a+"|"+b:b+"|"+a;
-  const explicitPairs=new Set();
-  // 명시적 관계: 출발 Vault가 소유 (독립성 유지 — 상대 Vault는 수정하지 않음)
+  const taken=new Set();
+  const ghost=(gid,label,from,role)=>{
+    let g=S.nodeById.get(gid);
+    if(!g){ const src=S.nodeById.get(from), o=old.get(gid);
+      g={id:gid, ghost:true, label:label||gid, x:o?o.x:src.x+(Math.random()-.5)*90, y:o?o.y:src.y+(Math.random()-.5)*90, vx:0, vy:0, pinned:o?o.pinned:false, deg:0, declaredBy:[], citedBy:[]};
+      S.nodes.push(g); S.nodeById.set(gid,g); }
+    if(label && (g.label===gid)) g.label=label;
+    if(!g[role].includes(from)) g[role].push(from);
+    return g;
+  };
+  // 1) 명시 관계: 출발 노트가 소유 (상대 노트는 수정하지 않음)
   for(const n of notes){
     for(const r of n.rels){
       if(!r || !r.target) continue;
-      let t=String(r.target); const tk=refKey(t); if(doiToId.has(tk)) t=doiToId.get(tk);
-      const type=ALIAS[String(r.type||"").toLowerCase()] || ALIAS[String(r.type||"")] || "related";
-      let tn=S.nodeById.get(t);
-      if(!tn){ // 아직 수집되지 않은 대상 → 공백 노드
-        const src=S.nodeById.get(n.id), o=old.get(t);
-        tn={id:t, ghost:true, label:String(r.target_title||t), x:o?o.x:src.x+(Math.random()-.5)*80, y:o?o.y:src.y+(Math.random()-.5)*80, vx:0, vy:0, pinned:false, deg:0, citedBy:[]};
-        S.nodes.push(tn); S.nodeById.set(t,tn);
-      }
-      if(tn.ghost) tn.citedBy.push(n.id);
+      const raw=String(r.target), k=refKey(raw);
+      const type=ALIAS[String(r.type||"").trim().toLowerCase()] || ALIAS[String(r.type||"").trim()] || "related";
+      const tid=S.nodeById.has(raw)&&!S.nodeById.get(raw).ghost ? raw : resolve(k);
+      const tn = tid ? S.nodeById.get(tid) : ghost(k, r.target_title || S.refLabel.get(k), n.id, "declaredBy");
+      if(tn.id===n.id) continue;
       const w=Math.max(.1,Math.min(1,Number(r.confidence??.7)));
-      S.edges.push(mkEdge(S.nodeById.get(n.id),tn,type,w,true,{owner:n.id,note:r.note,claim:r.claim}));
-      explicitPairs.add(pairKey(n.id,t));
+      S.edges.push(mkEdge(S.nodeById.get(n.id),tn,type,w,true,{owner:n.id,note:r.note,rationale:r.rationale,claim:r.claim,evidence:r.evidence,confidence:r.confidence}));
+      taken.add(pairKey(n.id,tn.id));
     }
   }
-  // 자동 근접: 키워드·토픽·참고문헌·방법론 중첩. 노드마다 가장 가까운 AUTO_K개만 남겨 그물처럼 엉키지 않게 함
-  const cand=[];
+  // 2) 인용(자동, 방향 있음): A의 참고문헌에 Vault 노트 B가 있으면 A→B
+  const refCount=new Map();
+  for(const n of notes){
+    for(const k of new Set(n.refs)){
+      const b=resolve(k);
+      if(b && b!==n.id){
+        const pk=pairKey(n.id,b); if(taken.has(pk)) continue; taken.add(pk);
+        S.edges.push(mkEdge(S.nodeById.get(n.id),S.nodeById.get(b),"cites",.6,false,{owner:n.id}));
+      } else if(!b){ if(!refCount.has(k)) refCount.set(k,[]); refCount.get(k).push(n.id); }
+    }
+  }
+  // 3) Vault 밖 문헌: ghostMin회 이상 인용되면 공백 노드 + 점선 인용
+  if(S.ghostMin>0) for(const [k,by] of refCount){
+    if(by.length<S.ghostMin) continue;
+    for(const id of by){ const g=ghost(k, S.refLabel.get(k), id, "citedBy"); S.edges.push(mkEdge(S.nodeById.get(id),g,"cites",.4,false,{owner:id,outside:true})); }
+  }
+  // 4) 유사도(자동): 키워드·토픽 중첩 / 같은 방법론
+  //    흔한 방법론(노트의 25% 이상이 쓰는 것, 예: 패널 회귀)은 '같은 방법론' 연결에서 제외
+  const mdf=new Map(); for(const n of notes) for(const m of new Set(n.methods)) mdf.set(m,(mdf.get(m)||0)+1);
+  const commonM=new Set([...mdf].filter(([,c])=>notes.length>=8 && c>Math.max(3,notes.length*.25)).map(([m])=>m));
+  S.commonMethods=[...commonM];
   for(let i=0;i<notes.length;i++) for(let j=i+1;j<notes.length;j++){
     const a=notes[i], b=notes[j];
-    if(explicitPairs.has(pairKey(a.id,b.id))) continue;
-    const jk=jacc(a.kw,b.kw), jt=jacc(a.topics,b.topics), sr=shared(a.refs,b.refs).length, sm=shared(a.methods,b.methods), jm=jacc(a.methods,b.methods);
-    const w=.5*jk+.3*jt+.15*Math.min(1,sr/3)+.05*jm;
-    if(w<.04) continue;
-    // '패널 회귀'처럼 흔한 방법론 하나만 겹치는 경우는 방법론 연결로 보지 않음
-    const type = (jm>=.5 && w>=.1) ? "same_method" : "related";
-    cand.push({a,b,w,type,why:{kw:shared(a.kw,b.kw),topics:shared(a.topics,b.topics),refs:sr,methods:sm}});
+    if(taken.has(pairKey(a.id,b.id))) continue;
+    const jk=jacc(a.kw,b.kw), jt=jacc(a.topics,b.topics), sm=shared(a.methods,b.methods).filter(m=>!commonM.has(m)), sr=shared(a.refs,b.refs).length;
+    const w=.6*jk+.4*jt;
+    if(w<.04 && !sm.length) continue;
+    const type = sm.length ? "same_method" : "related";
+    S.edges.push(mkEdge(S.nodeById.get(a.id),S.nodeById.get(b.id),type,Math.max(w,sm.length?.25:0),false,
+      {sim:w, why:{kw:shared(a.kw,b.kw),topics:shared(a.topics,b.topics),refs:sr,methods:sm}}));
   }
-  const keep=new Set(), byNode=new Map(notes.map(n=>[n.id,[]]));
-  for(const c of cand){ byNode.get(c.a.id).push(c); byNode.get(c.b.id).push(c); }
-  for(const list of byNode.values()){ list.sort((x,y)=>y.w-x.w); list.slice(0,AUTO_K).forEach(c=>keep.add(c)); }
-  for(const c of keep) S.edges.push(mkEdge(S.nodeById.get(c.a.id),S.nodeById.get(c.b.id),c.type,c.w,false,{why:c.why}));
-  computeGaps(notes, doiToId);
+  computeGaps(notes, refCount);
+  setAnchors();
   applyFilters();
 }
 function mkEdge(a,b,type,w,explicit,extra){
@@ -470,19 +553,21 @@ function mkEdge(a,b,type,w,explicit,extra){
   return Object.assign({a,b,type,w,explicit,L0,k:T.k*(.6+.8*w),tension:0,stretch:0},extra);
 }
 function applyFilters(){
-  S.active=S.edges.filter(e=>S.on.has(e.type) && (e.explicit || (S.implicit && e.w>=S.thr)));
-  S.conflictPairs=new Set(S.active.filter(e=>e.type==="contradicts").map(e=>e.a.id+"|"+e.b.id));
+  S.active=S.edges.filter(e=>S.on.has(e.type) && (e.explicit || e.type==="cites" || (S.autoShow!=="off" && e.w>=S.thr)));
+  S.repel=new Map();
+  for(const e of S.active){ const m=e.explicit&&REPEL[e.type]; if(m){ const k=e.a.id<e.b.id?e.a.id+"|"+e.b.id:e.b.id+"|"+e.a.id; S.repel.set(k,Math.max(m,S.repel.get(k)||1)); } }
   for(const n of S.nodes) n.deg=0;
   for(const e of S.active){ e.a.deg++; e.b.deg++; }
-  for(const n of S.nodes) n.r = n.ghost ? 9 : Math.min(20, 11+2.2*Math.sqrt(n.deg));
+  setRadii();
   reheat(.6); renderStat(); if(S.tab!=="vault") renderPane();
 }
-function computeGaps(notes, doiToId){
-  const ids=new Set(notes.map(n=>n.id.toLowerCase())), titles=new Set(notes.map(n=>n.title.toLowerCase()));
-  const refCount=new Map();
-  for(const n of notes) for(const r of new Set(n.refs)){ if(!refCount.has(r)) refCount.set(r,[]); refCount.get(r).push(n.id); }
-  const missingRefs=[...refCount].filter(([r,by])=>by.length>=2 && !ids.has(r) && !titles.has(r) && !doiToId.has(r))
-    .sort((a,b)=>b[1].length-a[1].length);
+function setRadii(){
+  const exp=new Map(); for(const e of S.active) if(e.explicit||e.type==="cites"){ exp.set(e.a.id,(exp.get(e.a.id)||0)+1); exp.set(e.b.id,(exp.get(e.b.id)||0)+1); }
+  for(const n of S.nodes){ const d=exp.get(n.id)||0;   // 크기는 명시 관계·인용 수 기준 (자동 유사도 제외)
+    n.r = S.mode==="dot" ? (n.ghost?4.5:5+1.9*Math.sqrt(d)) : S.mode==="shape" ? (n.ghost?7:8+2.2*Math.sqrt(d)) : (n.ghost?9:12+2.8*Math.sqrt(d)); }
+}
+function computeGaps(notes, refCount){
+  const missingRefs=[...refCount].filter(([,by])=>by.length>=2).sort((a,b)=>b[1].length-a[1].length);
   const topicCount=new Map();
   for(const n of notes) for(const t of new Set(n.topics)) topicCount.set(t,(topicCount.get(t)||0)+1);
   const questions=[]; for(const n of notes) for(const q of arr(n.fm.open_questions)) questions.push({id:n.id,q:String(q)});
@@ -491,6 +576,10 @@ function computeGaps(notes, doiToId){
 
 /* ======================= 물리엔진 ======================= */
 function reheat(a=1){ S.alpha=Math.max(S.alpha,a); }
+function setAnchors(){
+  const cats=[...new Set(S.nodes.filter(n=>!n.ghost).map(n=>n.note.cat))], N=S.nodes.length, R0=cats.length>1?70+22*Math.sqrt(N):0;
+  S.anchor=new Map(cats.map((c,i)=>[c,{x:Math.cos(i*2*Math.PI/cats.length-Math.PI/2)*R0, y:Math.sin(i*2*Math.PI/cats.length-Math.PI/2)*R0}]));
+}
 function tick(){
   const N=S.nodes, a=S.alpha;
   if(a>.002){
@@ -498,9 +587,9 @@ function tick(){
       for(let j=i+1;j<N.length;j++){ const q=N[j];
         let dx=q.x-p.x, dy=q.y-p.y, d2=dx*dx+dy*dy; if(d2<1){dx=Math.random()-.5;dy=Math.random()-.5;d2=1;}
         const d=Math.sqrt(d2);
-        let m=1; if(S.conflictPairs.has(p.id+"|"+q.id)||S.conflictPairs.has(q.id+"|"+p.id)) m=CONFLICT_REPULSION;
+        const m=S.repel.get(p.id<q.id?p.id+"|"+q.id:q.id+"|"+p.id)||1;
         let f=REP*m*a/d;
-        const minD=p.r+q.r+34; if(d<minD) f+=(minD-d)*.5;
+        const minD=p.r+q.r+14; if(d<minD) f+=(minD-d)*.5;
         const fx=dx/d*f, fy=dy/d*f;
         p.vx-=fx*.5; p.vy-=fy*.5; q.vx+=fx*.5; q.vy+=fy*.5;
       }
@@ -512,6 +601,7 @@ function tick(){
     }
     for(const n of N){
       n.vx-=n.x*.006*a; n.vy-=n.y*.006*a;
+      if(S.cluster && !n.ghost && S.anchor){ const an=S.anchor.get(n.note.cat); if(an){ n.vx+=(an.x-n.x)*.012*a; n.vy+=(an.y-n.y)*.012*a; } }
       if(n.pinned||n===S.drag){n.vx=n.vy=0;continue;}
       n.vx*=.6; n.vy*=.6; n.x+=n.vx; n.y+=n.vy;
     }
@@ -564,19 +654,19 @@ function blob(x,y,rx,ry,sd){ // 살짝 삐뚤빼뚤한 손그림 윤곽
 }
 function paint(fill,lw){ const C=S.colors; cx.fillStyle=fill; cx.fill(); cx.strokeStyle=C.outline; cx.lineWidth=lw; cx.lineJoin="round"; cx.stroke(); }
 function critter(n,hot,k){
-  const C=S.colors, r=n.r, x=n.x, y=n.y, sd=seedOf(n.id), body=C["c_"+n.note.cat], lw=Math.max(r*.13,1.3/k), cat=n.note.cat;
+  const C=S.colors, r=n.r, x=n.x, y=n.y, sd=seedOf(n.id), body=C["c_"+n.note.cat], lw=Math.max(r*.13,1.3/k), cat=n.note.cat, kind=(CATS[cat]||{}).kind||"chick";
   const tilt=(sd-.5)*.12; cx.save(); cx.translate(x,y); cx.rotate(tilt); cx.translate(-x,-y);
   // 귀·뿔·지느러미 (몸 뒤)
-  if(cat==="Bond"){ for(const s of [-1,1]){ cx.beginPath(); cx.arc(x+s*r*.62,y-r*.72,r*.3,0,6.2832); paint(body,lw); cx.beginPath(); cx.arc(x+s*r*.62,y-r*.72,r*.14,0,6.2832); cx.fillStyle=C.blush; cx.fill(); } }
-  else if(cat==="Credit"){ for(const s of [-1,1]){ cx.beginPath(); cx.arc(x+s*r*.66,y-r*.66,r*.36,0,6.2832); paint(body,lw); } }
-  else if(cat==="Macro"){ for(const s of [-1,1]){ cx.beginPath(); cx.moveTo(x+s*r*.28,y-r*.86); cx.lineTo(x+s*r*.86,y-r*1.18); cx.lineTo(x+s*r*.82,y-r*.5); cx.closePath(); paint(body,lw); } }
-  else if(cat==="Currency"){ for(const s of [-1,1]){ cx.beginPath(); cx.ellipse(x+s*r*1.02,y+r*.42,r*.36,r*.18,s*.6,0,6.2832); paint(body,lw); } }
+  if(kind==="shrew"){ for(const s of [-1,1]){ cx.beginPath(); cx.arc(x+s*r*.62,y-r*.72,r*.3,0,6.2832); paint(body,lw); cx.beginPath(); cx.arc(x+s*r*.62,y-r*.72,r*.14,0,6.2832); cx.fillStyle=C.blush; cx.fill(); } }
+  else if(kind==="bear"){ for(const s of [-1,1]){ cx.beginPath(); cx.arc(x+s*r*.66,y-r*.66,r*.36,0,6.2832); paint(body,lw); } }
+  else if(kind==="owl"){ for(const s of [-1,1]){ cx.beginPath(); cx.moveTo(x+s*r*.28,y-r*.86); cx.lineTo(x+s*r*.86,y-r*1.18); cx.lineTo(x+s*r*.82,y-r*.5); cx.closePath(); paint(body,lw); } }
+  else if(kind==="seal"){ for(const s of [-1,1]){ cx.beginPath(); cx.ellipse(x+s*r*1.02,y+r*.42,r*.36,r*.18,s*.6,0,6.2832); paint(body,lw); } }
   // 몸
   blob(x,y,r*1.1,r,sd); paint(body,lw);
-  if(cat==="Other"){ cx.strokeStyle=C.outline; cx.lineWidth=lw; cx.lineCap="round"; cx.beginPath(); cx.moveTo(x,y-r*.98); cx.quadraticCurveTo(x-r*.05,y-r*1.35,x+r*.22,y-r*1.32); cx.stroke(); }
+  if(kind==="chick"){ cx.strokeStyle=C.outline; cx.lineWidth=lw; cx.lineCap="round"; cx.beginPath(); cx.moveTo(x,y-r*.98); cx.quadraticCurveTo(x-r*.05,y-r*1.35,x+r*.22,y-r*1.32); cx.stroke(); }
   // 배·주둥이
-  if(cat==="Credit"){ cx.beginPath(); cx.ellipse(x,y+r*.22,r*.36,r*.26,0,0,6.2832); cx.fillStyle=C.belly; cx.fill(); }
-  if(cat==="Macro"){ cx.beginPath(); cx.ellipse(x,y+r*.42,r*.5,r*.38,0,0,6.2832); cx.fillStyle=C.belly; cx.fill();
+  if(kind==="bear"){ cx.beginPath(); cx.ellipse(x,y+r*.22,r*.36,r*.26,0,0,6.2832); cx.fillStyle=C.belly; cx.fill(); }
+  if(kind==="owl"){ cx.beginPath(); cx.ellipse(x,y+r*.42,r*.5,r*.38,0,0,6.2832); cx.fillStyle=C.belly; cx.fill();
     cx.strokeStyle=C.outline; cx.lineWidth=lw*.6; for(const [dx,dy] of [[-.18,.36],[.18,.36],[0,.56]]){ cx.beginPath(); cx.moveTo(x+(dx-.08)*r,y+dy*r); cx.lineTo(x+dx*r,y+(dy+.08)*r); cx.lineTo(x+(dx+.08)*r,y+dy*r); cx.stroke(); } }
   if(r*k>6){
     const ey=y-r*.1, ex=r*.36, er=Math.max(r*.1,.9/k);
@@ -586,18 +676,37 @@ function critter(n,hot,k){
     const ga=cx.globalAlpha; cx.globalAlpha=ga*.8; cx.fillStyle=C.blush;
     for(const s of [-1,1]){ cx.beginPath(); cx.ellipse(x+s*r*.62,y+r*.14,r*.15,r*.09,0,0,6.2832); cx.fill(); }
     cx.globalAlpha=ga;
-    if(cat==="Macro"||cat==="Other"){ // 부리
+    if(kind==="owl"||kind==="chick"){ // 부리
       cx.beginPath(); cx.moveTo(x-r*.13,y+r*.02); cx.lineTo(x+r*.13,y+r*.02); cx.lineTo(x,y+r*.2); cx.closePath(); cx.fillStyle=C.beak; cx.fill(); cx.lineWidth=lw*.55; cx.strokeStyle=C.outline; cx.stroke();
     } else { // ㅅ 입
       cx.lineWidth=Math.max(r*.07,.8/k); cx.strokeStyle=C.face; cx.beginPath();
       if(hot){ cx.arc(x,y+r*.08,r*.16,.1*Math.PI,.9*Math.PI); }
-      else { cx.moveTo(x-r*.12,y+r*.14); cx.quadraticCurveTo(x-r*.06,y+r*.04,x,y+r*.08); cx.quadraticCurveTo(x+r*.06,y+r*.04,x+r*.12,y+r*.14); }
+      else { cx.arc(x,y+r*.04,r*.1,.15*Math.PI,.85*Math.PI); }
       cx.stroke();
-      if(cat==="Bond"||cat==="Currency"){ cx.beginPath(); cx.arc(x,y+r*.02,r*.06,0,6.2832); cx.fillStyle=cat==="Bond"?C.blush:C.face; cx.fill(); }
+      if(kind==="shrew"||kind==="seal"){ cx.beginPath(); cx.arc(x,y+r*.02,r*.06,0,6.2832); cx.fillStyle=kind==="shrew"?C.blush:C.face; cx.fill(); }
     }
     cx.lineCap="butt";
   }
   cx.restore();
+}
+function shapePath(shape,x,y,r){
+  cx.beginPath();
+  if(shape==="circle"){ cx.arc(x,y,r,0,6.2832); return; }
+  if(shape==="square"){ const a=r*.88; cx.rect(x-a,y-a,2*a,2*a); return; }
+  const poly={diamond:[4,-Math.PI/2,1.15],triangle:[3,-Math.PI/2,1.2],hexagon:[6,0,1.05],pentagon:[5,-Math.PI/2,1.08]}[shape]||[6,0,1.05];
+  for(let i=0;i<poly[0];i++){ const a=poly[1]+i*2*Math.PI/poly[0], px=x+Math.cos(a)*r*poly[2], py=y+Math.sin(a)*r*poly[2]+(shape==="triangle"?r*.18:0); i?cx.lineTo(px,py):cx.moveTo(px,py); }
+  cx.closePath();
+}
+function shapeNode(n,hot,k){
+  const C=S.colors, c=CATS[n.note.cat]||CATS.Other;
+  shapePath(c.shape,n.x,n.y,n.r);
+  cx.fillStyle=C["c_"+n.note.cat]||C.c_Other; cx.fill();
+  cx.strokeStyle=C.outline; cx.lineWidth=(hot?2.6:1.6)/k; cx.lineJoin="round"; cx.stroke();
+}
+function shapeSVG(shape,css){
+  const pts={square:"M2.5 2.5h9v9h-9z",diamond:"M7 1l6 6-6 6-6-6z",triangle:"M7 1.5l6 11H1z",hexagon:"M3.5 1.5h7L14 7l-3.5 5.5h-7L0 7z",pentagon:"M7 1l6 4.5-2.3 7H3.3L1 5.5z"}[shape];
+  const el=shape==="circle"?`<circle cx="7" cy="7" r="5.5"/>`:`<path d="${pts}"/>`;
+  return `<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" style="fill:var(${css});stroke:var(--outline);stroke-width:1.5">${el}</svg>`;
 }
 function iconFor(n){ return S.icons.get("note:"+n.id) || S.icons.get("cat:"+n.note.cat) || null; }
 function drawIcon(n,im,hot,k){
@@ -625,17 +734,23 @@ function draw(){
   const nb=neighborSet();
   const fade=n=> (nb && !nb.has(n.id)) || (S.q && !matches(n));
   // edges
+  const focusId = S.sel || (S.hover && S.hover.id);
   for(const e of S.active){
+    const auto = !e.explicit && e.type!=="cites";
+    if(auto && S.autoShow==="sel" && !(focusId && (e.a.id===focusId||e.b.id===focusId))) continue;
+    if(e.outside && S.autoShow==="sel" && !(focusId && (e.a.id===focusId||e.b.id===focusId))) continue;
     const dim=fade(e.a)||fade(e.b) || (nb && !(e.a.id===S.sel||e.b.id===S.sel));
     const tn=Math.min(1,Math.abs(e.tension)/S.maxT);
-    let w = S.tensionView ? .6+4.2*tn : .6+2.2*e.w;
-    cx.globalAlpha = dim ? .08 : (e.explicit ? .9 : .55);
+    let w = S.tensionView ? .6+(S.mode==="dot"?3:4.2)*tn : .6+2.2*e.w;
+    if(auto) w=Math.min(w,1.2);
+    cx.globalAlpha = dim ? .06 : (e.explicit ? .85 : auto ? .45 : .5);
     cx.strokeStyle=C[e.type]; cx.lineWidth=w/k*Math.min(1.6,Math.max(.7,k));
-    cx.setLineDash(e.explicit?[]:[4/k,4/k]);
+    const dash = e.explicit ? (TYPES[e.type].dash||[]) : e.type==="cites" ? (e.outside?[2,4]:[]) : [4,4];
+    cx.setLineDash(dash.map(v=>v/k));
     cx.lineCap="round"; cx.beginPath(); cx.moveTo(e.a.x,e.a.y); cx.lineTo(e.b.x,e.b.y); cx.stroke(); cx.lineCap="butt";
-    if(e.explicit && !dim){ // 방향: 출발 Vault → 대상
+    if((e.explicit || e.type==="cites") && !dim){ // 방향: 출발 노트 → 대상
       const dx=e.b.x-e.a.x, dy=e.b.y-e.a.y, d=Math.hypot(dx,dy)||1, ux=dx/d, uy=dy/d;
-      const tx=e.b.x-ux*(e.b.r+3), ty=e.b.y-uy*(e.b.r+3), s=7/k;
+      const tx=e.b.x-ux*(e.b.r+3), ty=e.b.y-uy*(e.b.r+3), s=(S.mode==="dot"?5.5:7)/k;
       cx.setLineDash([]); cx.fillStyle=C[e.type];
       cx.beginPath(); cx.moveTo(tx,ty); cx.lineTo(tx-ux*s-uy*s*.5,ty-uy*s+ux*s*.5); cx.lineTo(tx-ux*s+uy*s*.5,ty-uy*s-ux*s*.5); cx.closePath(); cx.fill();
     }
@@ -646,23 +761,25 @@ function draw(){
     const dim=fade(n); cx.globalAlpha=dim?.18:1;
     const hot = n.id===S.sel || n===S.hover;
     if(n.ghost){ blob(n.x,n.y,n.r*1.1,n.r,seedOf(n.id)); cx.setLineDash([3/k,3/k]); cx.strokeStyle=C.muted; cx.lineWidth=1.8/k; cx.fillStyle=C.field; cx.fill(); cx.stroke(); cx.setLineDash([]);
-      if(n.r*k>5){ cx.fillStyle=C.muted; cx.font=`${n.r*1.3}px ${getComputedStyle(document.body).fontFamily}`; cx.textAlign="center"; cx.textBaseline="middle"; cx.fillText("?",n.x,n.y+n.r*.08); cx.textAlign="left"; } }
+      if(n.r*k>7.5){ cx.fillStyle=C.muted; cx.font=`${n.r*1.3}px ${getComputedStyle(document.body).fontFamily}`; cx.textAlign="center"; cx.textBaseline="middle"; cx.fillText("?",n.x,n.y+n.r*.08); cx.textAlign="left"; } }
+    else if(S.mode==="dot"){ cx.beginPath(); cx.arc(n.x,n.y,n.r,0,6.2832); cx.fillStyle=C["c_"+n.note.cat]||C.c_Other; cx.fill(); cx.strokeStyle=C.outline; cx.lineWidth=(hot?2.2:1.1)/k; cx.stroke(); }
+    else if(S.mode==="shape") shapeNode(n,hot,k);
     else { const im=iconFor(n); if(im) drawIcon(n,im,hot,k); else critter(n,hot,k); }
-    if(hot || (S.q && matches(n))){ cx.beginPath(); cx.ellipse(n.x,n.y+n.r*.05,n.r*1.45,n.r*1.35,0,0,Math.PI*2); cx.strokeStyle=C.accent; cx.lineWidth=2.5/k; cx.setLineDash([5/k,3/k]); cx.stroke(); cx.setLineDash([]); }
+    if(hot || (S.q && matches(n))){ cx.beginPath(); const ring=S.mode==="animal"?1.45:1.0; cx.ellipse(n.x,n.y+n.r*.05,n.r*ring+4/k,n.r*(ring-.1)+4/k,0,0,Math.PI*2); cx.strokeStyle=C.accent; cx.lineWidth=2.5/k; cx.setLineDash([5/k,3/k]); cx.stroke(); cx.setLineDash([]); }
     if(n.pinned){ cx.fillStyle=C.accent; cx.beginPath(); cx.arc(n.x+n.r*.7,n.y-n.r*.7,2.6/k,0,Math.PI*2); cx.fill(); }
   }
-  // labels
+  // labels: 선택·이웃·검색·상위 연결 노드 우선, 겹치면 생략 (선택/호버는 항상 표시)
   cx.font=`${12/k}px ${getComputedStyle(document.body).fontFamily}`; cx.textBaseline="middle";
-  // 겹치는 라벨은 건너뜀: 선택·호버·이웃·검색 결과를 먼저, 그다음 연결이 많은 노드 순
-  const prio=n=> (n.id===S.sel||n===S.hover)?3 : (nb&&nb.has(n.id))||(S.q&&matches(n))?2 : n.ghost?0:1;
-  const placed=[], lh=15/k;
-  for(const n of [...S.nodes].sort((a,b)=>prio(b)-prio(a)||b.deg-a.deg)){
-    if(fade(n)) continue;
-    let t = n.ghost ? n.label : n.note.short; if(t.length>26) t=t.slice(0,25)+"…";
-    const x=n.x+n.r*1.25+4/k, y=n.y, w=cx.measureText(t).width, box={x0:x-2/k,x1:x+w+2/k,y0:y-lh/2,y1:y+lh/2};
-    if(prio(n)<2 && placed.some(b=>box.x0<b.x1&&box.x1>b.x0&&box.y0<b.y1&&box.y1>b.y0)) continue;
-    placed.push(box);
-    cx.globalAlpha=n.ghost?.75:1; cx.lineWidth=3/k; cx.strokeStyle=C.field; cx.strokeText(t,x,y); cx.fillStyle=C.ink; cx.fillText(t,x,y);
+  const real=S.nodes.filter(n=>!n.ghost), topN=new Set([...real].sort((a,b)=>b.r-a.r).slice(0,Math.max(6,Math.round(real.length*.3))).map(n=>n.id));
+  const cand=S.nodes.map(n=>{ const forced=n.id===S.sel||n===S.hover; const pri=forced?0:(nb&&nb.has(n.id))?1:(S.q&&matches(n))?1:topN.has(n.id)?2:k>1.6?3:9; return {n,forced,pri}; })
+    .filter(c=>c.pri<9 && !fade(c.n)).sort((a,b)=>a.pri-b.pri || b.n.r-a.n.r);
+  const boxes=[], gx=S.mode==="animal"?1.25:1;
+  for(const {n,forced} of cand){
+    let t = n.ghost ? n.label : n.note.short; if(t.length>24) t=t.slice(0,23)+"…";
+    const x0=n.x+n.r*gx+4/k, w=cx.measureText(t).width, h=14/k, box=[x0,n.y-h/2,x0+w,n.y+h/2];
+    if(!forced && boxes.some(b=>!(box[2]<b[0]||box[0]>b[2]||box[3]<b[1]||box[1]>b[3]))) continue;
+    boxes.push(box);
+    cx.globalAlpha=n.ghost?.7:1; cx.lineWidth=3.5/k; cx.strokeStyle=C.field; cx.strokeText(t,x0,n.y); cx.fillStyle=forced?C.accent:C.ink; cx.fillText(t,x0,n.y);
   }
   cx.globalAlpha=1; S.dirty=false;
 }
@@ -700,8 +817,8 @@ cv.addEventListener("pointermove",ev=>{
   const h=hit(sx,sy); if(h!==S.hover){ S.hover=h; S.dirty=true; }
   const tip=$("tip");
   if(h){ tip.hidden=false; tip.style.left=Math.min(sx+14,S.W-290)+"px"; tip.style.top=(sy+14)+"px";
-    tip.innerHTML = h.ghost ? `<strong>미수집 대상</strong><br>${esc(h.label)}<br><span class="muted">${h.citedBy.length}개 Vault가 관계를 선언</span>`
-      : `<strong>${esc(h.note.title)}</strong><br><span class="muted">${esc(CATS[h.note.cat].label)} · ${esc(h.note.year)} · 연결 ${h.deg}</span>`; }
+    tip.innerHTML = h.ghost ? `<strong>Vault 밖 문헌</strong><br>${esc(h.label)}<br><span class="muted">${[h.declaredBy.length?`관계 선언 ${h.declaredBy.length}`:"",h.citedBy.length?`인용 ${h.citedBy.length}`:""].filter(Boolean).join(" · ")}</span>`
+      : `<strong>${esc(h.note.title)}</strong><br><span class="muted">${esc((CATS[h.note.cat]||CATS.Other).label)} · ${esc(h.note.year)} · 연결 ${h.deg}</span>`; }
   else tip.hidden=true;
 });
 function endPtr(ev){
@@ -754,37 +871,55 @@ function renderPane(){
   const P=$("pane");
   if(S.tab==="vault") return renderVault(P);
   if(S.tab==="tension") return renderTension(P);
+  if(S.tab==="list") return renderList(P);
   return renderGaps(P);
 }
 function renderVault(P){
   const node=S.sel && S.nodeById.get(S.sel);
   if(!node){
-    const cats=Object.entries(CATS).map(([k,c])=>`<span><span class="dot" style="background:var(${c.css})"></span>${c.label}</span>`).join(" ");
-    P.innerHTML=`<div class="empty"><div class="greet">${SHREW}<div class="bubble">동글이를 콕 눌러 보세요! 논문 노트를 펼쳐 드릴게요.</div></div>
-      <p>끌어당기면 연결된 노트들이 실처럼 따라오고, 두 번 누르면 그 자리에 고정돼요. 휠로 확대·축소할 수 있어요.</p>
-      <div class="note">선 굵기는 <strong>장력</strong>입니다. 관계가 끌어당기는데 다른 힘(반박 쌍의 척력, 주변 클러스터)에 막혀 늘어나 있을수록 굵어집니다. 진위가 아니라 <em>먼저 들여다볼 곳</em>을 가리킵니다.</div>
+    const cats=Object.entries(CATS).map(([k,c])=>`<span>${S.mode==="shape"?shapeSVG(c.shape,c.css):`<span class="dot" style="background:var(${c.css})"></span>`}${esc(c.label)}</span>`).join(" ");
+    P.innerHTML=`<div class="empty"><div class="greet">${SHREW}<div class="bubble">노드를 콕 눌러 보세요! 논문 노트를 펼쳐 드릴게요.</div></div>
+      <p>끌어당기면 연결된 노트들이 실처럼 따라오고, 두 번 누르면 그 자리에 고정돼요. 휠로 확대·축소할 수 있어요. 자동 계산된 유사도 선은 노드를 선택했을 때만 보입니다.</p>
+      <div class="note">선 굵기는 <strong>장력</strong>입니다. 관계가 끌어당기는데 다른 힘(반박·한계 제기 쌍의 척력, 주변 클러스터)에 막혀 늘어나 있을수록 굵어집니다. 진위가 아니라 <em>먼저 들여다볼 곳</em>을 가리킵니다.</div>
       <h3>범주</h3><div class="meta">${cats}</div>
       <h3>관계</h3><div class="meta">${Object.entries(TYPES).map(([k,t])=>`<span class="tag" style="color:var(${t.css})">${t.label}</span>`).join("")}</div></div>`;
     return;
   }
   if(node.ghost){
-    P.innerHTML=`<span class="eyebrow">미수집 대상 · 공백</span><h2>${esc(node.label)}</h2>
-      <p class="muted">이 대상은 Vault에 없지만 다음 Vault가 관계를 선언했습니다. 원문을 Drive에 올리고 정독하면 실선 노드로 바뀝니다.</p>
-      <ul class="plain">${node.citedBy.map(id=>`<li><button class="linkish" data-go="${esc(id)}">${esc(nameOf(id))}</button></li>`).join("")}</ul>`;
+    const li=ids=>ids.map(id=>`<li><button class="linkish" data-go="${esc(id)}">${esc(nameOf(id))}</button></li>`).join("");
+    P.innerHTML=`<span class="eyebrow">Vault 밖 문헌 · 공백</span><h2>${esc(node.label)}</h2>
+      <p class="muted">아직 Vault에 없는 문헌입니다. 원문을 Drive에 올리고 정독하면 실선 노드로 바뀝니다.</p>
+      ${node.id!==node.label?`<p class="mono" style="font-size:12px;overflow-wrap:anywhere">${esc(node.id)}</p>`:""}
+      ${node.declaredBy.length?`<h3>관계를 선언한 노트 (${node.declaredBy.length})</h3><ul class="plain">${li(node.declaredBy)}</ul>`:""}
+      ${node.citedBy.length?`<h3>인용한 노트 (${node.citedBy.length})</h3><ul class="plain">${li(node.citedBy)}</ul>`:""}`;
     bindGo(P); return;
   }
   const n=node.note, fm=n.fm, src=fm.source||{}, cap=capsuleOf(n);
-  const rels=S.active.filter(e=>e.a.id===n.id||e.b.id===n.id).sort((x,y)=>Math.abs(y.tension)-Math.abs(x.tension));
-  const relHtml=rels.map(e=>{
-    const other=e.a.id===n.id?e.b:e.a, dir=e.explicit?(e.a.id===n.id?"→":"←"):"↔";
-    const why=e.why?[e.why.methods.length?"방법론: "+e.why.methods.join(", "):"", e.why.kw.length?"키워드: "+e.why.kw.slice(0,4).join(", "):"", e.why.refs?`공통 인용 ${e.why.refs}건`:""].filter(Boolean).join(" · "):(e.note||"");
-    return `<div class="rel" data-go="${esc(other.id)}" tabindex="0"><span class="ty" style="color:var(${TYPES[e.type].css})">${dir} ${TYPES[e.type].label}</span>
-      <span class="nm">${esc(nameOf(other.id))}<small>장력 ${e.tension.toFixed(2)} · 늘어남 ${(e.stretch*100).toFixed(0)}%${why?" · "+esc(why):""}</small></span></div>`;
-  }).join("") || `<p class="muted">현재 필터에서 연결이 없습니다.</p>`;
+  const confLabel=v=>{ const x=Number(v); if(!isFinite(x)) return "신뢰도 미기재"; return `신뢰도 ${x>=.75?"높음":x>=.5?"중간":"낮음"} (${x.toFixed(2)})`; };
+  const claimOf=(ownerId,cid)=>{ const o=S.notes.get(ownerId); if(!o||!cid) return null; return arr(o.fm.claims).map(c=>typeof c==="string"?{text:c}:c).find(c=>String(c.id)===String(cid))||null; };
+  const exp=S.edges.filter(e=>e.explicit && (e.a.id===n.id||e.b.id===n.id)).sort((x,y)=>Math.abs(y.tension)-Math.abs(x.tension));
+  const cards=exp.map(e=>{
+    const out=e.a.id===n.id, other=out?e.b:e.a, T=TYPES[e.type];
+    const cl=claimOf(e.owner,e.claim), body=e.rationale||e.note||"";
+    const ev=(cl||e.evidence)?`<details><summary>근거 보기</summary><div class="ev">${cl?`<div>“${esc(cl.text)}”</div>${cl.evidence?`<small>${esc(nameOf(e.owner))} · ${esc(cl.evidence)}</small>`:""}`:""}${e.evidence?`<small>관계 근거: ${esc(e.evidence)}</small>`:""}</div></details>`:"";
+    return `<div class="rcard"><div class="rhead"><span class="pill" style="--pc:var(${T.css})">${T.label}</span><span class="dir">${out?"→":"←"}</span>
+      <button class="linkish" data-go="${esc(other.id)}">${esc(nameOf(other.id))}</button><span class="conf">${confLabel(e.confidence)}</span></div>
+      ${body?`<p>${esc(body)}</p>`:""}${out?"":`<span class="owner">${esc(nameOf(e.owner))} 노트가 선언한 관계</span>`}${ev}</div>`;
+  }).join("");
+  const autos=S.edges.filter(e=>!e.explicit && (e.a.id===n.id||e.b.id===n.id)).sort((x,y)=>(x.type==="cites"?0:1)-(y.type==="cites"?0:1) || (y.sim||0)-(x.sim||0));
+  const autoHtml=autos.map(e=>{
+    const out=e.a.id===n.id, other=out?e.b:e.a, nm=`<button class="linkish" data-go="${esc(other.id)}">${esc(nameOf(other.id))}</button>`;
+    if(e.type==="cites") return `<li><span class="k">${e.outside?"vault 밖 문헌 인용":out?"인용함":"인용됨"}</span>${nm}</li>`;
+    const why=[e.why.methods.length?"방법론: "+e.why.methods.join(", "):"", e.why.kw.length?"키워드: "+e.why.kw.slice(0,3).join(", "):"", e.why.refs?`공통 인용 ${e.why.refs}`:""].filter(Boolean).join(" · ");
+    return `<li><span class="k">${e.type==="same_method"?"같은 방법론":"유사도"} ${(e.sim||0).toFixed(2)}</span>${nm}${why?`<span class="k">${esc(why)}</span>`:""}</li>`;
+  }).join("");
+  const relHtml=`${cards?`<div class="rcards">${cards}</div>`:`<p class="muted">명시된 관계가 없습니다.</p>`}
+    ${autoHtml?`<h3>인용 · 유사도 <small>자동 계산</small></h3><ul class="auto">${autoHtml}</ul>`:""}`;
+  const rels=exp;
   const claims=arr(fm.claims).map(c=>typeof c==="string"?{text:c}:c).map(c=>`<li class="claim">${esc(c.text)}${c.evidence?`<small>근거 ${esc(c.evidence)}</small>`:""}</li>`).join("");
   const eqs=arr(fm.equations).map(q=>typeof q==="string"?{latex:q}:q).map(q=>`<div class="eq">${tex(q.latex,true)}${q.meaning||q.section?`<div class="m">${q.section?`<span class="tag">${esc(q.section)}</span> `:""}${esc(q.meaning||"")}</div>`:""}</div>`).join("");
   const drive=src.drive_id?`<a href="https://drive.google.com/file/d/${encodeURIComponent(src.drive_id)}/view" target="_blank" rel="noopener noreferrer">Drive 원본</a>`:"—";
-  P.innerHTML=`<span class="eyebrow" style="color:var(${CATS[n.cat].css})">${CATS[n.cat].label}</span>
+  P.innerHTML=`<span class="eyebrow" style="color:var(${(CATS[n.cat]||CATS.Other).css})">${esc((CATS[n.cat]||CATS.Other).label)}</span>
     <h2>${esc(n.title)}</h2>
     <div class="meta">${n.year?`<span class="tag">${esc(n.year)}</span>`:""}${fm.venue?`<span class="tag">${esc(fm.venue)}</span>`:""}
       <span class="tag acc">${esc(n.access)}</span>${fm.reader?`<span class="tag">정독: ${esc(fm.reader)}</span>`:""}${arr(fm.read_scope).length?`<span class="tag">${esc(arr(fm.read_scope).join("·"))}</span>`:""}</div>
@@ -811,7 +946,7 @@ function renderTension(P){
   const list=[...S.active].sort((a,b)=>Math.abs(b.tension)-Math.abs(a.tension)).slice(0,20);
   const byType={}; for(const e of S.active){ byType[e.type]=(byType[e.type]||0)+1; }
   P.innerHTML=`<h2>장력 상위 연결</h2>
-    <div class="note">관계가 기대 거리(L₀)보다 얼마나 늘어나 있는지 × 스프링 강도입니다. 반박 쌍은 서로 당기면서 밀어내도록 설계되어 장력이 남습니다. 높은 장력 = 먼저 대조해 볼 연결이지, 어느 쪽이 맞다는 뜻은 아닙니다.</div>
+    <div class="note">관계가 기대 거리(L₀)보다 얼마나 늘어나 있는지 × 스프링 강도입니다. 반박·한계 제기 쌍은 서로 당기면서 밀어내도록 설계되어 장력이 남습니다. 높은 장력 = 먼저 대조해 볼 연결이지, 어느 쪽이 맞다는 뜻은 아닙니다.</div>
     <h3>현재 연결 구성</h3><div class="meta">${Object.entries(byType).map(([k,c])=>`<span class="tag" style="color:var(${TYPES[k].css})">${TYPES[k].label} ${c}</span>`).join("")||"<span class=muted>연결 없음</span>"}</div>
     <h3>상위 ${list.length}</h3>
     ${list.map(e=>{ const t=Math.abs(e.tension)/S.maxT; return `<div class="tbar" data-go="${esc(e.a.id)}" tabindex="0">
@@ -825,26 +960,45 @@ function renderGaps(P){
   const ghosts=S.nodes.filter(n=>n.ghost), iso=S.nodes.filter(n=>!n.ghost&&n.deg===0);
   P.innerHTML=`<h2>공백 탐색</h2>
     <div class="note">Vault 사이의 빈 곳입니다. 다음에 읽을 논문, 다시 정독할 노트를 고르는 데 쓰세요.</div>
-    <h3>관계는 있으나 미수집 (${ghosts.length})</h3>
-    ${ghosts.map(g=>`<div class="gap-item"><button class="linkish" data-go="${esc(g.id)}">${esc(g.label)}</button><span>${g.citedBy.length} Vault</span></div>`).join("")||`<p class="muted">없음</p>`}
-    <h3>2개 이상 Vault가 인용했지만 미수집 (${G.missingRefs.length})</h3>
-    ${G.missingRefs.slice(0,15).map(([r,by])=>`<div class="gap-item"><span class="mono" style="font-size:12px;overflow-wrap:anywhere">${esc(r)}</span><span>${by.length}회</span></div>`).join("")||`<p class="muted">없음</p>`}
+    <h3>관계는 선언됐지만 미수집 (${ghosts.filter(g=>g.declaredBy.length).length})</h3>
+    ${ghosts.filter(g=>g.declaredBy.length).map(g=>`<div class="gap-item"><button class="linkish" data-go="${esc(g.id)}">${esc(g.label)}</button><span>${g.declaredBy.length} 노트</span></div>`).join("")||`<p class="muted">없음</p>`}
+    <h3>2개 이상 노트가 인용했지만 미수집 (${G.missingRefs.length})</h3>
+    ${G.missingRefs.slice(0,20).map(([r,by])=>`<div class="gap-item">${S.nodeById.has(r)?`<button class="linkish" data-go="${esc(r)}">${esc(S.refLabel.get(r)||r)}</button>`:`<span style="overflow-wrap:anywhere">${esc(S.refLabel.get(r)||r)}</span>`}<span>${by.length}회</span></div>`).join("")||`<p class="muted">없음</p>`}
     <h3>고립된 Vault (${iso.length})</h3>
-    ${iso.map(n=>`<div class="gap-item"><button class="linkish" data-go="${esc(n.id)}">${esc(n.note.short)}</button><span>${esc(CATS[n.note.cat].label)}</span></div>`).join("")||`<p class="muted">없음 — 현재 필터 기준</p>`}
+    ${iso.map(n=>`<div class="gap-item"><button class="linkish" data-go="${esc(n.id)}">${esc(n.note.short)}</button><span>${esc((CATS[n.note.cat]||CATS.Other).label)}</span></div>`).join("")||`<p class="muted">없음 — 현재 필터 기준</p>`}
     <h3>열린 질문 (${G.questions.length})</h3>
     <ul class="plain">${G.questions.map(q=>`<li class="claim">${esc(q.q)}<small><button class="linkish" data-go="${esc(q.id)}">${esc(nameOf(q.id))}</button></small></li>`).join("")||`<li class="muted">없음</li>`}</ul>
     <h3>한 Vault에만 등장하는 토픽 (${G.thinTopics.length})</h3>
     <div class="meta">${G.thinTopics.slice(0,30).map(t=>`<span class="tag">${esc(t)}</span>`).join("")||`<span class="muted">없음</span>`}</div>`;
   bindGo(P);
 }
+function renderList(P){
+  const rows=S.nodes.filter(n=>!n.ghost && matches(n)).map(n=>{
+    const t=n.note;
+    return {id:n.id, title:t.title, year:Number(t.year)||0, cat:(CATS[t.cat]||CATS.Other).label, css:(CATS[t.cat]||CATS.Other).css, shape:(CATS[t.cat]||CATS.Other).shape,
+      rel:S.edges.filter(e=>e.explicit&&(e.a.id===n.id||e.b.id===n.id)).length,
+      cited:S.edges.filter(e=>e.type==="cites"&&!e.outside&&e.b.id===n.id).length};
+  });
+  const {key,dir}=S.listSort;
+  rows.sort((a,b)=>{ const x=a[key], y=b[key]; return (typeof x==="number"? x-y : String(x).localeCompare(String(y),"ko"))*dir; });
+  const th=(k,l,num)=>`<th${num?' style="text-align:right"':""}><button type="button" data-sort="${k}"${key===k?` aria-sort="${dir>0?"ascending":"descending"}"`:""}>${l}${key===k?(dir>0?" ▲":" ▼"):""}</button></th>`;
+  P.innerHTML=`<h2>노트 목록</h2><p class="muted" style="margin:0 0 10px">${rows.length}편${S.q?` · 검색어 “${esc(S.q)}”`:""}. 머리글을 눌러 정렬하세요.</p>
+    <div class="lwrap"><table class="ltable"><thead><tr>${th("title","제목")}${th("year","연도",1)}${th("cat","범주")}${th("rel","관계",1)}${th("cited","피인용",1)}</tr></thead>
+    <tbody>${rows.map(r=>`<tr data-go="${esc(r.id)}" tabindex="0"><td>${esc(r.title)}</td><td class="num">${r.year||"—"}</td><td style="white-space:nowrap">${S.mode==="shape"?shapeSVG(r.shape,r.css):`<span class="dot" style="background:var(${r.css})"></span>`}${esc(r.cat)}</td><td class="num">${r.rel}</td><td class="num">${r.cited}</td></tr>`).join("")}</tbody></table></div>`;
+  P.querySelectorAll("[data-sort]").forEach(b=>b.onclick=()=>{ const k=b.dataset.sort; S.listSort = S.listSort.key===k ? {key:k,dir:-S.listSort.dir} : {key:k,dir:(k==="title"||k==="cat")?1:-1}; renderList(P); });
+  bindGo(P);
+}
 function renderStat(){
-  const real=S.nodes.filter(n=>!n.ghost).length, gh=S.nodes.length-real, ex=S.active.filter(e=>e.explicit).length;
-  $("stat").textContent=`Vault ${real} · 미수집 ${gh} · 명시 관계 ${ex} · 자동 ${S.active.length-ex}`;
+  const real=S.nodes.filter(n=>!n.ghost).length, gh=S.nodes.length-real;
+  const cnt=t=>S.active.filter(e=>t(e)).length;
+  $("stat").textContent=`노트 ${real} · 관계 ${cnt(e=>e.explicit)} · 인용 ${cnt(e=>e.type==="cites"&&!e.outside)} · 유사도 ${cnt(e=>!e.explicit&&e.type!=="cites")} · 공백 문헌 ${gh}`;
 }
 function renderChips(){
   $("type-chips").innerHTML=Object.entries(TYPES).map(([k,t])=>`<button type="button" class="chip" data-t="${k}" aria-pressed="${S.on.has(k)}" style="color:var(${t.css})"><span class="sw"></span><span style="color:var(--ink)">${t.label}</span></button>`).join("");
   $("type-chips").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{ const k=c.dataset.t; S.on.has(k)?S.on.delete(k):S.on.add(k); c.setAttribute("aria-pressed",String(S.on.has(k))); applyFilters(); });
-  $("legend-cat").innerHTML=Object.values(CATS).map(c=>`<span title="${c.animal}"><span class="dot" style="background:var(${c.css})"></span>${c.label} <span class="muted">${c.animal}</span></span>`).join("");
+  $("legend-cat").innerHTML=Object.values(CATS).map(c=>S.mode==="shape"
+    ? `<span>${shapeSVG(c.shape,c.css)}${esc(c.label)}</span>`
+    : `<span title="${c.animal}"><span class="dot" style="background:var(${c.css})"></span>${esc(c.label)}${S.mode==="animal"?` <span class="muted">${c.animal}</span>`:""}</span>`).join("");
 }
 
 /* ======================= GitHub 로더 ======================= */
@@ -880,6 +1034,9 @@ async function loadIcons(notes){
   const [o,rp]=S.repo.split("/"), base=`/repos/${encodeURIComponent(o)}/${encodeURIComponent(rp)}/contents/`, ref=`?ref=${encodeURIComponent(S.branch)}`;
   const want=new Map();
   try{ const th=await (await gh(base+"theme/theme.json"+ref,"application/vnd.github.raw+json")).json();
+    S.catLabels=th.labels||{};
+    for(const [cat,lab] of Object.entries(S.catLabels)) if(CATS[cat]) CATS[cat].label=String(lab);
+    renderChips(); if(S.tab==="vault"&&!S.sel) renderPane();
     for(const [cat,path] of Object.entries(th.categories||{})) if(CATS[cat]&&path) want.set("cat:"+cat,String(path));
     const lg=arr(th.login).slice(0,2);
     for(let i=0;i<lg.length;i++) want.set("login:"+(i+1),String(lg[i]));
@@ -887,7 +1044,8 @@ async function loadIcons(notes){
   // 파일 이름 규칙 (theme.json에 없는 칸만 채움): theme/login-1.png, theme/bond.png, theme/notes/<노트id>.png
   const IMG=/\.(png|webp|gif|jpe?g)$/i, byStem=new Map();
   for(const path of (S.treePaths||[])) if(path.startsWith("theme/") && IMG.test(path)) byStem.set(path.slice(6).replace(IMG,"").toLowerCase(),path);
-  const NAMES={"login:1":["login-1"],"login:2":["login-2"],"cat:Bond":["bond"],"cat:Credit":["credit"],"cat:Currency":["currency","fx"],"cat:Macro":["macro"],"cat:Other":["other"]};
+  const NAMES={"login:1":["login-1"],"login:2":["login-2"]};
+  for(const k of Object.keys(CATS)) NAMES["cat:"+k]=k==="Currency"?["currency","fx"]:[k.toLowerCase()];
   for(const [key,stems] of Object.entries(NAMES)) if(!want.has(key)){ const hit=stems.map(x=>byStem.get(x)).find(Boolean); if(hit) want.set(key,hit); }
   for(const n of notes){ const hit=byStem.get("notes/"+n.id.toLowerCase()); if(hit && !n.fm.icon) want.set("note:"+n.id,hit); }
   for(const n of notes) if(n.fm.icon) want.set("note:"+n.id,String(n.fm.icon).replace(/^\/+/,""));
@@ -902,13 +1060,15 @@ async function loadIcons(notes){
 function ingest(notes){
   S.notes=new Map(); const seen=new Set();
   for(const n of notes){ if(seen.has(n.id)){ console.warn("중복 id", n.id, n.path); continue; } seen.add(n.id); S.notes.set(n.id,n); }
+  resetCats(); for(const n of S.notes.values()) ensureCat(n.cat);
+  readColors(); renderChips();
   buildGraph(); S.view={x:0,y:0,k:1}; S.sel=null; S.alpha=1; S.autoFit=true; renderPane();
 }
 
 /* ======================= 화면 전환 ======================= */
 function showApp(){ $("gate").hidden=true; $("app").hidden=false; $("demo-flag").hidden=!S.demo; resize(); readColors(); renderChips(); }
 function lock(){
-  renderHeroes();
+  renderHeroes(); resetCats(); S.catLabels={};
   S.token=null; store.del("vault.token","session"); S.notes=new Map(); S.nodes=[]; S.edges=[]; S.active=[];
   $("app").hidden=true; $("gate").hidden=false; $("gh-token").value=""; $("gate-err").hidden=true;
 }
@@ -938,11 +1098,14 @@ $("btn-reload").onclick=async()=>{ if(S.demo){ ingest(DEMO.map(([p,t])=>parseNot
 function alertInPane(m){ $("pane").insertAdjacentHTML("afterbegin",`<p class="err">${esc(m)}</p>`); }
 $("btn-reheat").onclick=()=>{ for(const n of S.nodes){ if(!n.pinned){ n.x+=(Math.random()-.5)*60; n.y+=(Math.random()-.5)*60; } } reheat(1); };
 $("btn-fit").onclick=fit;
+$("t-mode").onchange=e=>{ S.mode=e.target.value; store.set("vault.mode",S.mode); setRadii(); renderChips(); renderPane(); reheat(.3); S.dirty=true; };
+$("t-cluster").onchange=e=>{ S.cluster=e.target.checked; reheat(.8); };
+$("t-ghost").onchange=e=>{ S.ghostMin=+e.target.value; buildGraph(); renderPane(); };
 $("btn-unpin").onclick=()=>{ S.nodes.forEach(n=>n.pinned=false); reheat(.5); };
-$("t-implicit").onchange=e=>{ S.implicit=e.target.checked; applyFilters(); };
+$("t-auto").onchange=e=>{ S.autoShow=e.target.value; applyFilters(); S.dirty=true; };
 $("t-thr").oninput=e=>{ S.thr=+e.target.value; $("t-thr-v").textContent=S.thr.toFixed(2); applyFilters(); };
 $("t-tension").onchange=e=>{ S.tensionView=e.target.checked; S.dirty=true; };
-$("q").oninput=e=>{ S.q=e.target.value.trim().toLowerCase(); S.dirty=true; };
+$("q").oninput=e=>{ S.q=e.target.value.trim().toLowerCase(); S.dirty=true; if(S.tab==="list") renderPane(); };
 window.addEventListener("resize",()=>{resize(); drawParade();});
 try{ matchMedia("(prefers-color-scheme: dark)").addEventListener("change",readColors); }catch(e){}
 new MutationObserver(readColors).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
@@ -950,6 +1113,7 @@ if(document.fonts) document.fonts.ready.then(()=>{S.dirty=true;});
 
 // 이전 설정 복원 (토큰은 sessionStorage에 남겨둔 경우만)
 try{ const c=JSON.parse(store.get("vault.cfg")||"null"); if(c){ $("gh-repo").value=c.repo||""; $("gh-branch").value=c.branch||"main"; $("gh-prefix").value=c.prefix??"vaults/"; } }catch(e){}
+{ const m=store.get("vault.mode"); if(m==="dot"||m==="shape"||m==="animal"){ S.mode=m; $("t-mode").value=m; } }
 const savedTok=store.get("vault.token","session"); if(savedTok){ $("gh-token").value=savedTok; $("gh-remember").checked=true; }
 
 /* ======================= 예시 Vault (가상 노트) ======================= */
@@ -961,6 +1125,7 @@ short_title: "예시 A · 딜러 제약→레포"
 authors: ["예시 저자"]
 year: 2024
 venue: "예시 저널"
+doi: "10.0000/demo.a"
 category: Bond
 access: private
 reader: opus
@@ -974,9 +1139,12 @@ claims:
   - { id: c2, text: "효과는 대형 딜러 비중이 높은 담보 시장에서 더 크다.", evidence: "p.19 §4.3" }
 equations:
   - { id: eq1, section: model, latex: "s_{t}=\\\\alpha+\\\\beta\\\\,LR_{t}+\\\\gamma\\\\,QE_{t}+\\\\varepsilon_{t}", meaning: "s: 레포-OIS 스프레드, LR: 레버리지 비율 제약 강도" }
-references: ["doi:10.0000/demo.leverage", "doi:10.0000/demo.repo-micro"]
+references:
+  - { doi: "10.0000/demo.leverage", title: "레버리지 비율과 딜러 중개 (가상 원논문)", year: 2016 }
+  - { doi: "10.0000/demo.repo-micro", title: "레포 시장 미시구조 (가상)", year: 2019 }
+  - "doi:10.0000/demo.c"
 relations:
-  - { target: demo-c, type: supports, claim: c1, confidence: 0.8, note: "분기말 급등 패턴과 일치" }
+  - { target: demo-c, type: supports, claim: c1, confidence: 0.8, note: "분기말 급등 패턴과 일치", rationale: "C가 이벤트 스터디로 보인 분기말 레포 금리 급등이, A의 패널 회귀에서 레버리지 비율 제약 강도와 함께 커지는 패턴과 일치한다. 서로 다른 방법으로 같은 방향의 결과를 얻었다.", evidence: "A p.14 Table 3 ↔ C p.7 Fig.2" }
 open_questions: ["규제 예외 기간에도 스프레드가 줄었는가?"]
 capsule: { summary: "레버리지 비율 제약이 분기말 레포 스프레드를 키운다는 패널 증거." }
 ---
@@ -991,6 +1159,7 @@ title: "예시 B · 국채 공급 충격과 기간 프리미엄"
 short_title: "예시 B · 공급→기간프리미엄"
 authors: ["예시 저자"]
 year: 2023
+doi: "10.0000/demo.b"
 category: Bond
 access: private
 reader: fable
@@ -1003,7 +1172,8 @@ claims:
   - { id: c1, text: "듀레이션 공급이 늘면 장기 기간 프리미엄이 상승한다.", evidence: "p.9 §3" }
 equations:
   - { id: eq1, section: model, latex: "y^{(n)}_{t}=a_{n}+b_{n}^{\\\\top}X_{t}", meaning: "만기 n 수익률의 어파인 표현" }
-references: ["doi:10.0000/demo.affine"]
+references:
+  - { doi: "10.0000/demo.affine", title: "어파인 기간구조 모형 (가상)", year: 2008 }
 relations:
   - { target: demo-a, type: complements, confidence: 0.5, note: "가격(기간프리미엄) 측면과 중개(레포) 측면" }
 capsule: { summary: "듀레이션 공급 충격이 기간 프리미엄을 올린다는 어파인 모형 결과." }
@@ -1016,6 +1186,7 @@ title: "예시 C · 분기말 레포 금리 급등의 미시구조"
 short_title: "예시 C · 분기말 급등"
 authors: ["예시 저자"]
 year: 2022
+doi: "10.0000/demo.c"
 category: Bond
 access: team
 reader: astra
@@ -1025,7 +1196,7 @@ keywords: [레포 스프레드, 분기말 효과, 결제 시스템]
 methods: [이벤트 스터디, 패널 회귀]
 claims:
   - { id: c1, text: "분기말 레포 금리 급등은 일부 딜러의 중개 축소에서 시작된다.", evidence: "p.7 Fig.2" }
-references: ["doi:10.0000/demo.repo-micro"]
+references: ["doi:10.0000/demo.repo-micro", "doi:10.0000/demo.e"]
 relations: []
 capsule: { summary: "분기말 레포 급등을 딜러 중개 축소로 설명하는 이벤트 스터디." }
 ---
@@ -1048,7 +1219,8 @@ claims:
   - { id: c1, text: "규제 강도를 통제하면 레포 스프레드 변동의 대부분은 담보 희소성으로 설명된다.", evidence: "p.22 Table 5" }
 references: ["doi:10.0000/demo.repo-micro"]
 relations:
-  - { target: demo-a, type: contradicts, claim: c1, confidence: 0.75, note: "같은 현상, 다른 원인(규제 vs 담보)" }
+  - { target: demo-a, type: contradicts, claim: c1, confidence: 0.75, note: "같은 현상, 다른 원인(규제 vs 담보)", rationale: "A는 레포 스프레드 확대를 레버리지 비율 규제로 설명하지만, D는 규제 강도를 통제해도 변동 대부분이 담보 희소성으로 설명된다고 본다. 같은 현상에 대해 원인이 정면으로 엇갈린다.", evidence: "D p.22 Table 5" }
+  - { target: demo-e, type: limits, claim: c1, confidence: 0.6, note: "규제 효과 과대 추정 가능성", rationale: "E의 결론 방향(규제가 시장조성을 위축)은 인정하지만, 담보 희소성을 통제하지 않아 규제 효과의 크기가 과대 추정됐을 수 있다고 지적한다. 결론을 뒤집기보다 추정의 한계를 짚는 관계다.", evidence: "D p.24 §6.2" }
 open_questions: ["두 설명을 동시에 넣은 모형에서 각 기여도는?"]
 capsule: { summary: "레포 스프레드의 주동인은 규제가 아니라 담보 희소성이라는 구조 VAR 결과." }
 ---
@@ -1060,6 +1232,7 @@ title: "예시 E · 은행 자본규제와 시장조성 유동성"
 short_title: "예시 E · 자본규제→시장조성"
 authors: ["예시 저자"]
 year: 2021
+doi: "10.0000/demo.e"
 category: Credit
 access: private
 reader: opus
@@ -1116,7 +1289,7 @@ keywords: [FX 헤지비용, 크로스커런시 베이시스, 보험사 수요, �
 methods: [패널 회귀]
 claims:
   - { id: c1, text: "헤지비용이 오르면 기관의 헤지 해외채권 수요가 줄고 국내 장기채 수요가 늘어난다.", evidence: "p.18 §5" }
-references: ["doi:10.0000/demo.cip"]
+references: ["doi:10.0000/demo.cip", "doi:10.0000/demo.a"]
 relations:
   - { target: demo-f, type: extends, confidence: 0.7 }
   - { target: demo-b, type: complements, confidence: 0.45 }
@@ -1164,11 +1337,34 @@ claims:
   - { id: c1, text: "자연이자율 추정의 신뢰구간은 정책 판단에 쓰기에는 지나치게 넓다.", evidence: "p.20 Fig.6" }
 equations:
   - { id: eq1, section: model, latex: "r^{*}_{t}=c\\\\,g_{t}+z_{t}", meaning: "g: 추세 성장률, z: 기타 요인" }
+references: ["doi:10.0000/demo.b"]
 relations: []
 open_questions: ["r* 불확실성이 기간 프리미엄 추정에도 전이되는가?"]
 capsule: { summary: "자연이자율 추정 불확실성이 매우 크다." }
 ---
 가상의 예시 노트입니다.
+`]
+,["vaults/demo-j.md", `---
+id: demo-j
+title: "예시 J · 지급여력 규제와 보험사 장기채 수요"
+short_title: "예시 J · 보험 규제→장기채"
+authors: ["예시 저자"]
+year: 2024
+category: Insurance
+access: private
+reader: opus
+source: { file: "(Insurance) 예시, 2024, 지급여력 규제와 보험사 장기채 수요, 예시.pdf", drive_id: null }
+topics: [보험사 자산배분, 기간구조]
+keywords: [지급여력 규제, 듀레이션 매칭, 기간 프리미엄, 보험사 수요]
+methods: [패널 회귀]
+claims:
+  - { id: c1, text: "자본규제가 금리위험을 엄격히 반영할수록 보험사의 초장기채 수요가 늘어난다.", evidence: "p.16 §4" }
+references: ["doi:10.0000/demo.b", { doi: "10.0000/demo.affine", title: "어파인 기간구조 모형 (가상)", year: 2008 }]
+relations:
+  - { target: demo-b, type: extends, claim: c1, confidence: 0.65, rationale: "B의 듀레이션 공급-기간 프리미엄 관계를 수요 측(보험사 규제)으로 확장한다. 공급 충격 대신 규제로 생긴 수요 충격을 본다.", evidence: "J p.16 §4" }
+capsule: { summary: "새 범주(Insurance) 예시: 범주가 자동 추가되는지 확인용." }
+---
+가상의 예시 노트입니다. 범주 'Insurance'는 기본 목록에 없어서 색·동물·도형이 자동으로 배정됩니다.
 `]
 ];
 
