@@ -89,6 +89,8 @@ img.shrew{object-fit:contain}
 form.conn{display:grid;gap:14px;background:var(--surface);border:2px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 6px 0 var(--line)}
 .field{display:grid;gap:5px}
 .field label{font-size:13px;font-weight:700;color:var(--muted)}
+.cfg-note{font-size:12px;color:var(--muted)}
+.cfg-note a{color:var(--accent)}
 .field input[type=text],.field input[type=password]{width:100%;padding:10px 14px;border:2px solid var(--line);border-radius:14px;background:var(--bg)}
 .field input:focus{border-color:var(--accent);outline:none}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -248,6 +250,7 @@ pre.capsule{font-family:var(--f-mono);font-size:11.5px;background:var(--bg);bord
       <div class="field">
         <label for="gh-repo">저장소 (owner/repo)</label>
         <input type="text" id="gh-repo" placeholder="예: frontier/DG-vault" spellcheck="false" required>
+        <small class="cfg-note" id="cfg-note">한 번 입력하면 이 브라우저에 기억돼요. 토큰은 저장하지 않아요.</small>
       </div>
       <div class="row2">
         <div class="field">
@@ -1144,18 +1147,32 @@ function lock(){
   S.token=null; store.del("vault.token","session"); S.notes=new Map(); S.nodes=[]; S.edges=[]; S.active=[];
   $("app").hidden=true; $("gate").hidden=false; $("gh-token").value=""; $("gate-err").hidden=true;
 }
+// 저장소·브랜치·폴더(토큰 제외)를 이 브라우저에 기억. 입력하는 즉시 저장
+function readCfg(){
+  const repo=$("gh-repo").value.trim().replace(/^https?:\/\/github\.com\//,"").replace(/\.git$/,"").replace(/\/+$/,"");
+  let pf=$("gh-prefix").value.trim().replace(/^\.?\/+/,""); if(pf && !pf.endsWith("/")) pf+="/";
+  return {repo, branch:$("gh-branch").value.trim()||"main", prefix:pf};
+}
+function saveCfg(){
+  const c=readCfg(); if(!/^[\w.-]+\/[\w.-]+$/.test(c.repo)){ cfgNote(null); return; }
+  store.set("vault.cfg",JSON.stringify(c)); cfgNote(c);
+}
+// 다른 기기·브라우저용 북마크 링크: 설정을 # 뒤에 담아 서버로 보내지 않음
+function cfgNote(c){
+  const el=$("cfg-note"); if(!c){ el.textContent="한 번 입력하면 이 브라우저에 기억돼요. 토큰은 저장하지 않아요."; return; }
+  const h="#"+new URLSearchParams({repo:c.repo,branch:c.branch,prefix:c.prefix}).toString();
+  el.innerHTML=`이 브라우저에 기억됐어요. 다른 기기에서는 <a href="${esc(location.pathname+h)}">이 링크</a>를 북마크하면 저장소가 자동으로 채워져요.`;
+}
 async function connect(){
   const err=$("gate-err"), btn=$("btn-connect"); err.hidden=true;
-  const repo=$("gh-repo").value.trim().replace(/^https?:\/\/github\.com\//,"").replace(/\.git$/,"").replace(/\/+$/,"");
-  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)){ err.textContent="저장소는 owner/repo 형식으로 입력하세요."; err.hidden=false; return; }
-  S.repo=repo; S.branch=$("gh-branch").value.trim()||"main";
-  let pf=$("gh-prefix").value.trim().replace(/^\.?\/+/,""); if(pf && !pf.endsWith("/")) pf+="/"; S.prefix=pf;
+  const c=readCfg();
+  if(!/^[\w.-]+\/[\w.-]+$/.test(c.repo)){ err.textContent="저장소는 owner/repo 형식으로 입력하세요."; err.hidden=false; return; }
+  saveCfg(); S.repo=c.repo; S.branch=c.branch; S.prefix=c.prefix;
   S.token=$("gh-token").value.trim(); S.demo=false;
   if(!S.token){ err.textContent="토큰을 입력하세요."; err.hidden=false; return; }
   btn.disabled=true; btn.textContent="불러오는 중…";
   try{
     const {notes,errs}=await loadRepo();
-    store.set("vault.cfg",JSON.stringify({repo:S.repo,branch:S.branch,prefix:S.prefix}));
     if($("gh-remember").checked) store.set("vault.token",S.token,"session"); else store.del("vault.token","session");
     showApp(); ingest(notes); loadIcons(notes);
     if(errs.length) console.warn("읽지 못한 노트", errs), $("stat").textContent+=` · 오류 ${errs.length}`;
@@ -1185,6 +1202,10 @@ if(document.fonts) document.fonts.ready.then(()=>{S.dirty=true;});
 
 // 이전 설정 복원 (토큰은 sessionStorage에 남겨둔 경우만)
 try{ const c=JSON.parse(store.get("vault.cfg")||"null"); if(c){ $("gh-repo").value=c.repo||""; $("gh-branch").value=c.branch||"main"; $("gh-prefix").value=c.prefix??"vaults/"; } }catch(e){}
+// 북마크 링크(#repo=…&branch=…&prefix=…)로 열면 그 값으로 채우고 기억
+{ const h=new URLSearchParams(location.hash.slice(1)); if(h.get("repo")){ $("gh-repo").value=h.get("repo"); if(h.get("branch")) $("gh-branch").value=h.get("branch"); if(h.has("prefix")) $("gh-prefix").value=h.get("prefix"); } }
+for(const id of ["gh-repo","gh-branch","gh-prefix"]) $(id).addEventListener("change",saveCfg);
+saveCfg(); if($("gh-repo").value) $("gh-token").focus({preventScroll:true});
 { const m=store.get("vault.mode"); if(["colony","dot","shape","animal"].includes(m)){ S.mode=m; $("t-mode").value=m; } }
 { const g=store.get("vault.ghostMin"); if(["0","1","2","3"].includes(g)){ S.ghostMin=+g; $("t-ghost").value=g; } }
 const savedTok=store.get("vault.token","session"); if(savedTok){ $("gh-token").value=savedTok; $("gh-remember").checked=true; }
