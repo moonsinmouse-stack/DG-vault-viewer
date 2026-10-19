@@ -80,6 +80,7 @@ img.shrew{object-fit:contain}
 .slot-img img{width:100%;height:100%;object-fit:contain}
 .slot:focus-within .slot-img{border-color:var(--accent)}
 .parade{width:100%;height:104px;display:block;grid-column:1/-1}
+.parade[hidden]{display:none}
 .brand{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 14px;align-items:end}
 .brand .shrew{width:120px;height:104px;grid-row:span 2}
 .brand h1{font-family:var(--f-display);font-weight:400;font-size:32px;line-height:1.15;margin:0;text-wrap:balance;color:var(--ink)}
@@ -243,7 +244,7 @@ pre.capsule{font-family:var(--f-mono);font-size:11.5px;background:var(--bg);bord
       <div class="heroes" id="heroes"><span data-shrew></span></div>
       <span class="eyebrow">비밀 연구 서고</span>
       <h1><em>땃쥐</em>도서관<br>지식 그래프</h1>
-      <canvas class="parade" id="parade" aria-label="범주별 동물 친구들: 땃쥐, 곰, 물범, 부엉이, 병아리"></canvas>
+      <canvas class="parade" id="parade" aria-label="범주 캐릭터" hidden></canvas>
       <p>사서 땃쥐가 비공개 GitHub 서고에서 논문 노트를 꺼내 와, 어떤 논문끼리 지지하고 반박하고 확장하는지 실로 엮어 보여줘요. 이 페이지에는 논문 데이터가 없어요.</p>
     </div>
     <form class="conn" id="conn" autocomplete="off">
@@ -773,14 +774,30 @@ function drawColonies(k){
   }
   cx.textAlign="left"; cx.textBaseline="middle"; cx.globalAlpha=1;
 }
+// 첫 화면 범주 행렬: 로그인 때 기억한 내 범주 이미지만 그림. 기억된 게 없으면 기본 동물 대신 숨김
+let PARADE=null;
+function paradeItems(){
+  if(PARADE) return PARADE;
+  let list=[]; try{ list=JSON.parse(store.get("vault.parade")||"[]"); }catch(e){}
+  PARADE=arr(list).filter(x=>x&&x.key&&(x.url||BASE_CATS[x.key])).map(x=>{
+    const it={key:String(x.key),label:String(x.label||x.key),img:null};
+    if(x.url){ it.img=new Image(); it.img.onload=()=>drawParade(); it.img.src=String(x.url); }
+    return it;
+  });
+  const pc=$("parade"); if(pc){ pc.hidden=!PARADE.length; pc.setAttribute("aria-label","범주 캐릭터: "+PARADE.map(x=>x.label).join(", ")); }
+  return PARADE;
+}
 function drawParade(){
-  const pc=$("parade"); if(!pc||pc.offsetParent===null) return;
+  const items=paradeItems(), pc=$("parade"); if(!pc||!items.length||pc.offsetParent===null) return;
   const r0=pc.getBoundingClientRect(), dpr=window.devicePixelRatio||1; if(!r0.width) return;
   pc.width=r0.width*dpr; pc.height=r0.height*dpr; const keep=cx; cx=pc.getContext("2d");
   cx.setTransform(dpr,0,0,dpr,0,0); cx.clearRect(0,0,r0.width,r0.height);
-  const cats=Object.keys(CATS), step=r0.width/cats.length, r=Math.min(22,step*.28);
-  cats.forEach((c,i)=>{ const n={id:"parade-"+c,x:step*(i+.5),y:r0.height*.42+(i%2?3:-2),r,note:{cat:c}}; critter(n,i===0,1);
-    cx.fillStyle=S.colors.muted; cx.font=`12px ${getComputedStyle(document.body).fontFamily}`; cx.textAlign="center"; cx.fillText(CATS[c].label,n.x,r0.height-2); cx.textAlign="left"; });
+  const step=r0.width/items.length, r=Math.min(22,step*.28);
+  items.forEach((it,i)=>{ const x=step*(i+.5), y=r0.height*.42+(i%2?3:-2);
+    if(it.img){ if(it.img.complete&&it.img.naturalWidth){ const box=Math.min(r*2.9,step*.82), sc=box/Math.max(it.img.naturalWidth,it.img.naturalHeight), w=it.img.naturalWidth*sc, h=it.img.naturalHeight*sc;
+        cx.drawImage(it.img,x-w/2,y-h/2,w,h); } }
+    else critter({id:"parade-"+it.key,x,y,r,note:{cat:it.key}},i===0,1);
+    cx.fillStyle=S.colors.muted; cx.font=`12px ${getComputedStyle(document.body).fontFamily}`; cx.textAlign="center"; cx.fillText(it.label,x,r0.height-2); cx.textAlign="left"; });
   cx=keep;
 }
 function draw(){
@@ -1123,14 +1140,19 @@ async function loadIcons(notes){
   for(const [key,stems] of Object.entries(NAMES)) if(!want.has(key)){ const hit=stems.map(x=>byStem.get(x)).find(Boolean); if(hit) want.set(key,hit); }
   for(const n of notes){ const hit=byStem.get("notes/"+n.id.toLowerCase()); if(hit && !n.fm.icon) want.set("note:"+n.id,hit); }
   for(const n of notes) if(n.fm.icon) want.set("note:"+n.id,String(n.fm.icon).replace(/^\/+/,""));
+  const catPics=new Map();   // 첫 화면 행렬용: 범주 이미지를 작게 줄여 이 브라우저에 기억
   await Promise.all([...want].map(async([key,path])=>{
     try{ const blob=await (await gh(base+encPath(path)+ref,"application/vnd.github.raw+json")).blob();
+      if(key.startsWith("cat:")) catPics.set(key.slice(4), await shrinkToDataURL(new File([blob],"x"),96));
       if(key.startsWith("login:")){ const f=new File([blob],"x"); store.set("vault.hero"+key.slice(6), await shrinkToDataURL(f)); return; }
       if(key==="mascot"){ MASCOT_URL=await shrinkToDataURL(new File([blob],"x"),240); store.set("vault.mascot",MASCOT_URL); refreshMascot(); return; }
       const bmp=await createImageBitmap(blob); S.icons.set(key,bmp);
     }catch(e){ console.warn("이미지 로드 실패",path,e.message); }
   }));
-  S.dirty=true; refreshMascot();
+  // 범주 순서·이름과 함께 저장. 내 이미지가 하나도 없으면 지워서 첫 화면 행렬을 숨김
+  const parade=Object.keys(CATS).map(k=>({key:k,label:CATS[k].label,url:catPics.get(k)||null}));
+  if(catPics.size) store.set("vault.parade",JSON.stringify(parade)); else store.del("vault.parade");
+  PARADE=null; S.dirty=true; refreshMascot();
 }
 function ingest(notes){
   S.notes=new Map(); const seen=new Set();
@@ -1145,7 +1167,7 @@ function showApp(){ $("gate").hidden=true; $("app").hidden=false; $("demo-flag")
 function lock(){
   renderHeroes(); resetCats(); S.catLabels={};
   S.token=null; store.del("vault.token","session"); S.notes=new Map(); S.nodes=[]; S.edges=[]; S.active=[];
-  $("app").hidden=true; $("gate").hidden=false; $("gh-token").value=""; $("gate-err").hidden=true;
+  $("app").hidden=true; $("gate").hidden=false; $("gh-token").value=""; $("gate-err").hidden=true; drawParade();
 }
 // 저장소·브랜치·폴더(토큰 제외)를 이 브라우저에 기억. 입력하는 즉시 저장
 function readCfg(){
