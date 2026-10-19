@@ -307,7 +307,7 @@ pre.capsule{font-family:var(--f-mono);font-size:11.5px;background:var(--bg);bord
         <button class="btn small" id="btn-unpin" type="button">고정 해제</button>
         <button class="btn small" id="btn-fit" type="button">전체 보기</button>
         <div class="grp"><label for="t-mode">모양</label><select id="t-mode"><option value="dot" selected>점</option><option value="shape">도형</option><option value="animal">동물</option></select></div>
-        <div class="grp"><label for="t-ghost">공백 문헌</label><select id="t-ghost"><option value="0">끔</option><option value="1">1회+</option><option value="2" selected>2회+</option><option value="3">3회+</option></select></div>
+        <div class="grp"><label for="t-ghost">공백 문헌</label><select id="t-ghost"><option value="0">끔</option><option value="1">1회+</option><option value="2">2회+</option><option value="3" selected>3회+</option></select></div>
         <div class="grp legend-cat" id="legend-cat"></div>
       </div>
       <div class="tip" id="tip" hidden></div>
@@ -412,7 +412,7 @@ const S = {
   token:null, repo:null, branch:"main", prefix:"vaults/", demo:false,
   icons:new Map(), notes:new Map(), nodes:[], nodeById:new Map(), edges:[], active:[],
   gaps:null,
-  on:new Set(Object.keys(TYPES)), implicit:true, autoShow:"sel", cluster:true, thr:.2, tensionView:true, ghostMin:2, mode:"dot", catLabels:{},
+  on:new Set(Object.keys(TYPES)), implicit:true, autoShow:"sel", cluster:true, thr:.2, tensionView:true, ghostMin:3, mode:"dot", catLabels:{},
   repel:new Map(), refLabel:new Map(), listSort:{key:"year",dir:-1},
   sel:null, hover:null, q:"", tab:"vault", bodyOpen:false,
   view:{x:0,y:0,k:1}, alpha:1, alphaTarget:0, colors:{}
@@ -1100,7 +1100,7 @@ $("btn-reheat").onclick=()=>{ for(const n of S.nodes){ if(!n.pinned){ n.x+=(Math
 $("btn-fit").onclick=fit;
 $("t-mode").onchange=e=>{ S.mode=e.target.value; store.set("vault.mode",S.mode); setRadii(); renderChips(); renderPane(); reheat(.3); S.dirty=true; };
 $("t-cluster").onchange=e=>{ S.cluster=e.target.checked; reheat(.8); };
-$("t-ghost").onchange=e=>{ S.ghostMin=+e.target.value; buildGraph(); renderPane(); };
+$("t-ghost").onchange=e=>{ S.ghostMin=+e.target.value; store.set("vault.ghostMin",String(S.ghostMin)); buildGraph(); renderPane(); };
 $("btn-unpin").onclick=()=>{ S.nodes.forEach(n=>n.pinned=false); reheat(.5); };
 $("t-auto").onchange=e=>{ S.autoShow=e.target.value; applyFilters(); S.dirty=true; };
 $("t-thr").oninput=e=>{ S.thr=+e.target.value; $("t-thr-v").textContent=S.thr.toFixed(2); applyFilters(); };
@@ -1114,6 +1114,7 @@ if(document.fonts) document.fonts.ready.then(()=>{S.dirty=true;});
 // 이전 설정 복원 (토큰은 sessionStorage에 남겨둔 경우만)
 try{ const c=JSON.parse(store.get("vault.cfg")||"null"); if(c){ $("gh-repo").value=c.repo||""; $("gh-branch").value=c.branch||"main"; $("gh-prefix").value=c.prefix??"vaults/"; } }catch(e){}
 { const m=store.get("vault.mode"); if(m==="dot"||m==="shape"||m==="animal"){ S.mode=m; $("t-mode").value=m; } }
+{ const g=store.get("vault.ghostMin"); if(["0","1","2","3"].includes(g)){ S.ghostMin=+g; $("t-ghost").value=g; } }
 const savedTok=store.get("vault.token","session"); if(savedTok){ $("gh-token").value=savedTok; $("gh-remember").checked=true; }
 
 /* ======================= 예시 Vault (가상 노트) ======================= */
