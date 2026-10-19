@@ -1,0 +1,1167 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>땃쥐도서관 지식 그래프</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=IBM+Plex+Mono:wght@400;500&family=Jua&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
+<style>
+/* Layout: 손그림 스티커 도감 — 장력 필드(캔버스) + 오른쪽 열람 카드. 갈색 외곽선, 톤 다운 파스텔. 마스코트: 사서 땃쥐 */
+:root{
+  --bg:#FFFCF9; --surface:#FFFFFF; --field:#FBF7F2; --dotgrid:#EDE2D6; --ink:#4E3B31; --muted:#9A8678; --line:#E8DACD;
+  --accent:#EC8294; --accent-soft:#FCE7EA; --accent-ink:#FFFFFF; --warn:#D9822B; --shadow:rgba(120,85,60,.16);
+  --r-sup:#58AA7B; --r-con:#E35A6B; --r-ext:#6890D6; --r-met:#A47FD6; --r-cmp:#DE9E35; --r-rel:#CDBFB2;
+  --c-bond:#A9CBEB; --c-credit:#F3D08E; --c-fx:#A6D9C3; --c-macro:#CDB6E3; --c-other:#DDD2C6;
+  --outline:#5B4033; --face:#5B4033; --blush:#F4A1AD; --belly:#FFF5E8; --beak:#F0A458;
+  --shrew:#C9AA95; --shrew-belly:#FBEADB; --shrew-nose:#F29AAA;
+  --f-display:"Jua","Gowun Dodum","Apple SD Gothic Neo",system-ui,sans-serif;
+  --f-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#211B18; --surface:#2B2420; --field:#251F1B; --dotgrid:#3A302A; --ink:#F6ECE4; --muted:#B6A597; --line:#45392F;
+  --accent:#F49CAB; --accent-soft:#4A2E33; --accent-ink:#2A1A1D; --warn:#F0A65C; --shadow:rgba(0,0,0,.35);
+  --r-sup:#73C995; --r-con:#F27384; --r-ext:#86AAEB; --r-met:#BE9CEB; --r-cmp:#EDB65A; --r-rel:#5F5249;
+  --c-bond:#A9CBEB; --c-credit:#F3D08E; --c-fx:#A6D9C3; --c-macro:#CDB6E3; --c-other:#CFC3B6;
+  --outline:#3A2920; --face:#3A2920; --blush:#F4A1AD; --belly:#FFF5E8; --beak:#F0A458;
+  --shrew:#C9AA95; --shrew-belly:#FBEADB; --shrew-nose:#F29AAA;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#211B18; --surface:#2B2420; --field:#251F1B; --dotgrid:#3A302A; --ink:#F6ECE4; --muted:#B6A597; --line:#45392F;
+  --accent:#F49CAB; --accent-soft:#4A2E33; --accent-ink:#2A1A1D; --warn:#F0A65C; --shadow:rgba(0,0,0,.35);
+  --r-sup:#73C995; --r-con:#F27384; --r-ext:#86AAEB; --r-met:#BE9CEB; --r-cmp:#EDB65A; --r-rel:#5F5249;
+  --c-bond:#A9CBEB; --c-credit:#F3D08E; --c-fx:#A6D9C3; --c-macro:#CDB6E3; --c-other:#CFC3B6;
+  --outline:#3A2920; --face:#3A2920; --blush:#F4A1AD; --belly:#FFF5E8; --beak:#F0A458;
+  --shrew:#C9AA95; --shrew-belly:#FBEADB; --shrew-nose:#F29AAA;
+  color-scheme:dark}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14.5px;line-height:1.6}
+*{box-sizing:border-box}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:10px}
+.mono{font-family:var(--f-mono)}
+.muted{color:var(--muted)}
+
+/* ---------- 마스코트 ---------- */
+.shrew{display:block;overflow:visible}
+.shrew .bob{transform-origin:70px 100px;animation:bob 2.6s ease-in-out infinite}
+.shrew .blink{transform-origin:50px 53px;animation:blink 4.2s infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+.bubble{position:relative;background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:10px 14px;font-size:13.5px;box-shadow:0 3px 0 var(--line)}
+.bubble::after{content:"";position:absolute;left:-9px;bottom:16px;width:14px;height:14px;background:var(--surface);border-left:2px solid var(--line);border-bottom:2px solid var(--line);transform:rotate(45deg)}
+
+/* ---------- Gate ---------- */
+.gate{min-height:100%;display:grid;place-items:center;padding-block:36px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background:var(--bg)}
+.gate-card{width:100%;max-width:520px;display:grid;gap:20px}
+.heroes{display:flex;align-items:flex-end;gap:2px;grid-row:span 2}
+.heroes img{height:104px;width:auto;max-width:120px;object-fit:contain;animation:bob 2.6s ease-in-out infinite}
+.heroes img:nth-child(2){animation-delay:-1.3s}
+.hero-edit summary{cursor:pointer;color:var(--muted);font-size:13px;list-style:none}
+.hero-edit summary::before{content:"✎ ";color:var(--accent)}
+.hero-slots{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.slot{cursor:pointer}
+.slot input{position:absolute;opacity:0;width:1px;height:1px}
+.slot-img{display:grid;place-items:center;width:76px;height:76px;border:2px dashed var(--line);border-radius:18px;background:var(--bg);color:var(--muted);font-size:12px;overflow:hidden}
+.slot-img img{width:100%;height:100%;object-fit:contain}
+.slot:focus-within .slot-img{border-color:var(--accent)}
+.parade{width:100%;height:104px;display:block;grid-column:1/-1}
+.brand{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 14px;align-items:end}
+.brand .shrew{width:120px;height:104px;grid-row:span 2}
+.brand h1{font-family:var(--f-display);font-weight:400;font-size:32px;line-height:1.15;margin:0;text-wrap:balance;color:var(--ink)}
+.brand h1 em{font-style:normal;color:var(--accent)}
+.brand p{margin:0;color:var(--muted);grid-column:1/-1}
+.eyebrow{font-family:var(--f-display);font-size:13px;letter-spacing:.04em;color:var(--accent)}
+form.conn{display:grid;gap:14px;background:var(--surface);border:2px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 6px 0 var(--line)}
+.field{display:grid;gap:5px}
+.field label{font-size:13px;font-weight:700;color:var(--muted)}
+.field input[type=text],.field input[type=password]{width:100%;padding:10px 14px;border:2px solid var(--line);border-radius:14px;background:var(--bg)}
+.field input:focus{border-color:var(--accent);outline:none}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--muted)}
+input[type=checkbox],input[type=range]{accent-color:var(--accent)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:999px;border:2px solid var(--line);background:var(--surface);cursor:pointer;font-family:var(--f-display);font-size:14.5px;box-shadow:0 3px 0 var(--line);transition:transform .08s,box-shadow .08s}
+.btn:hover{border-color:var(--accent)}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);box-shadow:0 3px 0 color-mix(in srgb,var(--accent) 60%,var(--ink))}
+.btn.small{padding:5px 12px;font-size:13px}
+.btn[disabled]{opacity:.55;cursor:progress}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.err{color:var(--r-con);font-size:13px;margin:0}
+.hint{font-size:13px;color:var(--muted);display:grid;gap:6px;background:var(--surface);border:2px dashed var(--line);border-radius:18px;padding:14px 16px}
+.hint strong{font-family:var(--f-display);font-weight:400;color:var(--ink);font-size:15px}
+.hint ol{margin:0;padding-left:18px;display:grid;gap:2px}
+.hint code{font-family:var(--f-mono);font-size:12px;background:var(--accent-soft);padding:0 4px;border-radius:5px}
+
+/* ---------- App ---------- */
+.app{height:100%;display:grid;grid-template-rows:auto 1fr}
+.bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding-block:8px;border-bottom:2px solid var(--line);background:var(--surface);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.bar .logo{display:flex;align-items:center;gap:6px}
+.bar .logo .shrew{width:44px;height:38px}
+.bar .title{font-family:var(--f-display);font-size:21px;white-space:nowrap}
+.stat{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;background:var(--bg);border-radius:999px;padding:3px 10px}
+.bar .grow{flex:1 1 auto}
+.search{min-width:0;flex:1 1 180px;max-width:280px;padding:7px 14px;border:2px solid var(--line);border-radius:999px;background:var(--bg)}
+.search:focus{border-color:var(--accent);outline:none}
+.demo-flag{font-family:var(--f-display);font-size:12.5px;padding:3px 10px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+main.work{display:grid;grid-template-columns:minmax(0,1fr) 400px;min-height:0}
+.stage{position:relative;min-height:0;background:var(--field);overflow:hidden}
+canvas#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}
+canvas#field.dragging{cursor:grabbing}
+.controls{position:absolute;left:12px;top:12px;right:12px;display:flex;flex-wrap:wrap;gap:6px;pointer-events:none}
+.controls > *{pointer-events:auto}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 11px 4px 6px;border-radius:99px;border:2px solid var(--line);background:var(--surface);font-size:12.5px;cursor:pointer;user-select:none;box-shadow:0 2px 0 var(--line)}
+.chip .sw{width:12px;height:12px;border-radius:50%;background:currentColor;border:1.5px solid var(--outline)}
+.chip[aria-pressed="false"]{opacity:.5}
+.chip[aria-pressed="false"] .sw{background:transparent;border:2px dashed var(--muted);width:12px;height:12px}
+.dock{position:absolute;left:12px;bottom:12px;right:12px;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;pointer-events:none;font-size:12.5px}
+.dock > *{pointer-events:auto}
+.dock .grp{display:flex;gap:6px;align-items:center;background:var(--surface);border:2px solid var(--line);border-radius:999px;padding:4px 12px;box-shadow:0 2px 0 var(--line)}
+.dock input[type=range]{width:100px}
+.legend-cat{display:flex;gap:10px;flex-wrap:wrap}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-right:4px;border:2px solid var(--outline)}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:7px 11px;font-size:12.5px;max-width:280px;box-shadow:0 4px 0 var(--line)}
+
+aside.panel{border-left:2px solid var(--line);background:var(--surface);display:grid;grid-template-rows:auto 1fr;min-height:0}
+.tabs{display:flex;gap:6px;padding:10px 12px;border-bottom:2px solid var(--line)}
+.tabs button{flex:1;padding:7px 6px;border:2px solid transparent;border-radius:999px;background:none;cursor:pointer;font-family:var(--f-display);font-size:14.5px;color:var(--muted)}
+.tabs button[aria-selected="true"]{color:var(--accent);background:var(--accent-soft)}
+.pane{overflow:auto;padding:16px 18px 28px;min-height:0}
+.pane h2{font-family:var(--f-display);font-weight:400;font-size:22px;line-height:1.3;margin:0 0 8px;text-wrap:balance}
+.pane h3{font-family:var(--f-display);font-weight:400;font-size:14.5px;color:var(--ink);margin:22px 0 8px;display:flex;align-items:center;gap:6px}
+.pane h3::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.pane h3 small{font-family:var(--f-body);font-size:12px;color:var(--muted)}
+.meta{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:12px;padding:2px 9px;border-radius:999px;background:var(--bg);border:1.5px solid var(--line);white-space:nowrap}
+.tag.acc{border-color:var(--warn);color:var(--warn)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:13px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.kv a{color:var(--accent)}
+ul.plain{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.claim{background:var(--bg);border-radius:14px;padding:8px 12px}
+.claim small{display:block;color:var(--muted);font-size:11.5px}
+.eq{background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:8px 12px;overflow-x:auto}
+.eq math{font-size:1.05em}
+.eq .m{font-size:12.5px;color:var(--muted);margin-top:4px}
+.rel{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:start;cursor:pointer;padding:7px 9px;border-radius:14px}
+.rel:hover{background:var(--bg)}
+.rel .ty{font-family:var(--f-display);font-size:12.5px;white-space:nowrap}
+.rel .nm{min-width:0}
+.rel .nm small{display:block;color:var(--muted)}
+pre.capsule{font-family:var(--f-mono);font-size:11.5px;background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:10px 12px;overflow:auto;max-height:240px;margin:0;white-space:pre}
+.body-md{font-size:14px;overflow-wrap:anywhere}
+.body-md h1,.body-md h2,.body-md h3{font-family:var(--f-display);font-weight:400;font-size:17px;margin:16px 0 6px}
+.body-md h1::before,.body-md h2::before,.body-md h3::before{display:none}
+.body-md table{border-collapse:collapse;display:block;overflow-x:auto}
+.body-md td,.body-md th{border:1px solid var(--line);padding:4px 6px}
+.body-md pre{overflow-x:auto;background:var(--bg);padding:8px;border-radius:10px}
+.body-md code{font-family:var(--f-mono);font-size:12px}
+.empty{color:var(--ink);font-size:14px;display:grid;gap:12px}
+.empty .greet{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;align-items:end}
+.empty .greet .shrew{width:96px;height:84px}
+.empty p{margin:0;color:var(--muted)}
+.tbar{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 4px;border-bottom:2px dotted var(--line);cursor:pointer}
+.tbar:hover .nm{color:var(--accent)}
+.tbar .val{font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums;text-align:right}
+.meter{grid-column:1/-1;height:8px;background:var(--bg);border-radius:99px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:99px}
+.note{font-size:13px;color:var(--muted);background:var(--accent-soft);border-radius:14px;padding:10px 13px}
+.note strong,.note em{color:var(--ink)}
+.gap-item{display:flex;justify-content:space-between;gap:10px;padding:7px 2px;border-bottom:2px dotted var(--line);font-size:13.5px}
+.gap-item span:last-child{font-size:12px;color:var(--muted);white-space:nowrap}
+.linkish{background:none;border:0;padding:0;color:var(--accent);cursor:pointer;text-align:left;font-weight:700}
+
+@media (max-width:860px){
+  .app{height:auto;min-height:100%}
+  main.work{grid-template-columns:1fr}
+  .stage{height:64vh;min-height:380px}
+  aside.panel{border-left:0;border-top:2px solid var(--line)}
+  .pane{overflow:visible}
+  .search{max-width:none}
+}
+@media (max-width:480px){ .row2{grid-template-columns:1fr} .dock input[type=range]{width:80px} .legend-cat{display:none} .brand .shrew{width:96px;height:84px} .brand h1{font-size:27px} }
+@media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
+</style>
+</head>
+<body>
+
+<!-- ============ Gate ============ -->
+<section class="gate" id="gate">
+  <div class="gate-card">
+    <div class="brand">
+      <div class="heroes" id="heroes"><span data-shrew></span></div>
+      <span class="eyebrow">비밀 연구 서고</span>
+      <h1><em>땃쥐</em>도서관<br>지식 그래프</h1>
+      <canvas class="parade" id="parade" aria-label="범주별 동물 친구들: 땃쥐, 곰, 물범, 부엉이, 병아리"></canvas>
+      <p>사서 땃쥐가 비공개 GitHub 서고에서 논문 노트를 꺼내 와, 어떤 논문끼리 지지하고 반박하고 확장하는지 실로 엮어 보여줘요. 이 페이지에는 논문 데이터가 없어요.</p>
+    </div>
+    <form class="conn" id="conn" autocomplete="off">
+      <div class="field">
+        <label for="gh-repo">저장소 (owner/repo)</label>
+        <input type="text" id="gh-repo" placeholder="예: frontier/DG-vault" spellcheck="false" required>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="gh-branch">브랜치</label>
+          <input type="text" id="gh-branch" value="main" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="gh-prefix">Vault 폴더</label>
+          <input type="text" id="gh-prefix" value="vaults/" spellcheck="false">
+        </div>
+      </div>
+      <div class="field">
+        <label for="gh-token">GitHub 토큰 (fine-grained PAT, Contents 읽기 전용)</label>
+        <input type="password" id="gh-token" placeholder="github_pat_…" spellcheck="false" required>
+      </div>
+      <label class="check" for="gh-remember"><input type="checkbox" id="gh-remember"> 이 탭을 닫을 때까지 토큰 유지 (sessionStorage). 해제하면 새로고침 시 다시 입력합니다.</label>
+      <p class="err" id="gate-err" hidden></p>
+      <div class="actions">
+        <button class="btn primary" type="submit" id="btn-connect">Vault 열기</button>
+        <button class="btn" type="button" id="btn-demo">예시 Vault 구경하기</button>
+      </div>
+      <details class="hero-edit" id="hero-edit">
+        <summary>로그인 캐릭터 바꾸기</summary>
+        <div class="hero-slots">
+          <label class="slot" for="hero-1"><span class="slot-img" id="hero-1-prev">메인 1</span><input type="file" id="hero-1" accept="image/png,image/webp,image/gif,image/jpeg"></label>
+          <label class="slot" for="hero-2"><span class="slot-img" id="hero-2-prev">메인 2</span><input type="file" id="hero-2" accept="image/png,image/webp,image/gif,image/jpeg"></label>
+          <button class="btn small" type="button" id="hero-reset">기본 땃쥐로</button>
+        </div>
+        <p class="muted" style="margin:6px 0 0;font-size:12.5px">배경이 투명한 PNG가 가장 예뻐요. 이 브라우저에만 저장되고 어디에도 올라가지 않아요.</p>
+      </details>
+    </form>
+    <div class="hint">
+      <strong>서고 열쇠(토큰) 만드는 법</strong>
+      <ol>
+        <li>GitHub → Settings → Developer settings → Fine-grained tokens → Generate</li>
+        <li>Repository access: <code>Only select repositories</code> → Vault 저장소 하나</li>
+        <li>Permissions → Repository → <code>Contents: Read-only</code> (나머지는 없음)</li>
+        <li>만료 기간은 30~90일 권장</li>
+      </ol>
+      <span>토큰은 브라우저에서 api.github.com으로만 전송되며 URL이나 저장소에 기록되지 않습니다.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ App ============ -->
+<div class="app" id="app" hidden>
+  <header class="bar">
+    <span class="logo"><span data-shrew></span><span class="title">땃쥐도서관</span></span>
+    <span class="demo-flag" id="demo-flag" hidden>구경 모드 · 가상 노트</span>
+    <span class="stat" id="stat"></span>
+    <span class="grow"></span>
+    <input class="search" id="q" type="search" placeholder="제목·키워드·토픽 검색" aria-label="검색">
+    <button class="btn small" id="btn-reload" type="button">다시 불러오기</button>
+    <button class="btn small" id="btn-lock" type="button">서고 잠그기</button>
+  </header>
+  <main class="work">
+    <div class="stage" id="stage">
+      <canvas id="field" aria-label="Vault 관계 장력 그래프"></canvas>
+      <div class="controls" id="type-chips"></div>
+      <div class="dock">
+        <div class="grp"><label for="t-implicit">자동 근접</label><input type="checkbox" id="t-implicit" checked>
+          <input type="range" id="t-thr" min="0.06" max="0.5" step="0.01" value="0.14" aria-label="자동 근접 임계값"><span class="mono" id="t-thr-v">0.14</span></div>
+        <div class="grp"><label for="t-tension">장력 굵기</label><input type="checkbox" id="t-tension" checked></div>
+        <button class="btn small" id="btn-reheat" type="button">재배치</button>
+        <button class="btn small" id="btn-unpin" type="button">고정 해제</button>
+        <button class="btn small" id="btn-fit" type="button">전체 보기</button>
+        <div class="grp legend-cat" id="legend-cat"></div>
+      </div>
+      <div class="tip" id="tip" hidden></div>
+    </div>
+    <aside class="panel">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="vault" id="tab-vault">Vault</button>
+        <button role="tab" aria-selected="false" data-tab="tension" id="tab-tension">장력</button>
+        <button role="tab" aria-selected="false" data-tab="gaps" id="tab-gaps">공백</button>
+      </div>
+      <div class="pane" id="pane"></div>
+    </aside>
+  </main>
+</div>
+
+<script>
+"use strict";
+/* ======================= 마스코트: 사서 땃쥐 (오리지널) ======================= */
+const SHREW=`<svg class="shrew" viewBox="0 0 140 120" aria-hidden="true">
+<ellipse cx="74" cy="113" rx="40" ry="5" fill="var(--shadow)"/>
+<g class="bob" stroke="var(--outline)" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round">
+<path d="M104 96 C122 100 134 92 132 76" fill="none"/>
+<path d="M104 96 C122 100 134 92 132 76" stroke="var(--shrew)" stroke-width="3" fill="none"/>
+<ellipse cx="62" cy="106" rx="8" ry="4.5" fill="var(--shrew-nose)"/><ellipse cx="92" cy="106" rx="8" ry="4.5" fill="var(--shrew-nose)"/>
+<path d="M46 80 C46 60 64 52 80 52 C100 52 112 64 112 82 C112 98 98 106 78 106 C58 106 46 98 46 80 Z" fill="var(--shrew)"/>
+<path d="M60 88 C60 80 68 76 76 76 C86 76 92 82 92 90 C92 99 84 103 76 103 C66 103 60 97 60 88 Z" fill="var(--shrew-belly)" stroke="none"/>
+<circle cx="74" cy="36" r="9.5" fill="var(--shrew)"/><circle cx="74" cy="37" r="4.6" fill="var(--shrew-nose)" stroke="none"/>
+<path d="M86 52 C88 34 66 28 54 36 C46 41 38 47 23 53 C16 56 17 61 23 62 C36 65 48 70 62 70 C78 70 85 63 86 52 Z" fill="var(--shrew)"/>
+<circle cx="19" cy="57.5" r="4.6" fill="var(--shrew-nose)"/>
+<g class="blink" style="transform-box:fill-box;transform-origin:center" stroke="none"><circle cx="50" cy="51" r="3.2" fill="var(--face)"/><circle cx="51.1" cy="49.9" r="1" fill="#fff"/></g>
+<circle cx="50" cy="51" r="8" fill="none" stroke-width="2.2"/><path d="M58 50 L70 47" fill="none" stroke-width="2.2"/>
+<ellipse cx="61" cy="61" rx="5" ry="3" fill="var(--blush)" stroke="none" opacity=".85"/>
+<g transform="rotate(-8 57 88)"><rect x="40" y="76" width="34" height="24" rx="4" fill="var(--accent)"/><rect x="43.5" y="78.5" width="27" height="19" rx="2" fill="#FFFFFF" stroke-width="1.6"/><path d="M57 78.5 v19" stroke-width="1.8"/><path d="M47 84h7M47 89h7M60 84h7M60 89h5" stroke="#D9C8BA" stroke-width="1.8"/></g>
+<ellipse cx="42" cy="85" rx="5.5" ry="4.5" fill="var(--shrew)"/><ellipse cx="73" cy="82" rx="5.5" ry="4.5" fill="var(--shrew)"/>
+</g></svg>`;
+document.querySelectorAll("[data-shrew]").forEach(el=>el.outerHTML=SHREW);
+
+/* ======================= 내 이미지 칸 ======================= */
+// 로그인 캐릭터: 브라우저 localStorage에만 저장 (최대 320px로 줄여 저장)
+function shrinkToDataURL(file,max=320){ return new Promise((ok,no)=>{ const fr=new FileReader(); fr.onerror=no; fr.onload=()=>{ const im=new Image(); im.onerror=no; im.onload=()=>{
+  const sc=Math.min(1,max/Math.max(im.width,im.height)), c=document.createElement("canvas"); c.width=Math.round(im.width*sc); c.height=Math.round(im.height*sc);
+  c.getContext("2d").drawImage(im,0,0,c.width,c.height); ok(c.toDataURL("image/png")); }; im.src=fr.result; }; fr.readAsDataURL(file); }); }
+function renderHeroes(){
+  const hs=[store.get("vault.hero1"),store.get("vault.hero2")].filter(Boolean), box=document.getElementById("heroes");
+  box.innerHTML = hs.length ? hs.map((u,i)=>`<img src="${u}" alt="로그인 캐릭터 ${i+1}">`).join("") : SHREW;
+  for(const i of [1,2]){ const u=store.get("vault.hero"+i), el=document.getElementById(`hero-${i}-prev`); el.innerHTML = u?`<img src="${u}" alt="">`:`메인 ${i}`; }
+}
+for(const i of [1,2]) document.getElementById("hero-"+i).addEventListener("change",async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{ store.set("vault.hero"+i, await shrinkToDataURL(f)); }catch(err){ console.warn(err); }
+  e.target.value=""; renderHeroes();
+});
+document.getElementById("hero-reset").onclick=()=>{ store.del("vault.hero1"); store.del("vault.hero2"); renderHeroes(); };
+
+/* ======================= 설정 ======================= */
+const TYPES = {
+  supports:    {label:"지지",          css:"--r-sup", L:70,  k:.050},
+  contradicts: {label:"반박·충돌",      css:"--r-con", L:60,  k:.070},
+  extends:     {label:"확장",          css:"--r-ext", L:80,  k:.045},
+  same_method: {label:"동일 방법론",     css:"--r-met", L:110, k:.030},
+  complements: {label:"보완",          css:"--r-cmp", L:95,  k:.035},
+  related:     {label:"키워드 근접(자동)", css:"--r-rel", L:140, k:.015}
+};
+const ALIAS = {support:"supports",supports:"supports","지지":"supports",
+  contradict:"contradicts",contradicts:"contradicts",refutes:"contradicts",conflicts:"contradicts","반박":"contradicts","충돌":"contradicts",
+  extend:"extends",extends:"extends","확장":"extends",
+  same_method:"same_method","same-method":"same_method",method:"same_method","방법론":"same_method","동일 방법론":"same_method",
+  complement:"complements",complements:"complements","보완":"complements",related:"related"};
+const CATS = {Bond:{label:"채권·금리",animal:"땃쥐",css:"--c-bond"},Credit:{label:"신용·은행",animal:"곰",css:"--c-credit"},
+  Currency:{label:"통화·FX",animal:"물범",css:"--c-fx"},Macro:{label:"거시",animal:"부엉이",css:"--c-macro"},Other:{label:"기타",animal:"병아리",css:"--c-other"}};
+const CONFLICT_REPULSION = 5;   // 반박 쌍의 추가 척력 배수 → 당기면서 밀어내 장력이 남음
+const REP = 140;                // 전역 척력 세기
+
+/* ======================= 상태 ======================= */
+const S = {
+  token:null, repo:null, branch:"main", prefix:"vaults/", demo:false,
+  icons:new Map(), notes:new Map(), nodes:[], nodeById:new Map(), edges:[], active:[],
+  conflictPairs:new Set(), gaps:null,
+  on:new Set(Object.keys(TYPES)), implicit:true, thr:.14, tensionView:true,
+  sel:null, hover:null, q:"", tab:"vault", bodyOpen:false,
+  view:{x:0,y:0,k:1}, alpha:1, alphaTarget:0, colors:{}
+};
+const $ = id => document.getElementById(id);
+const arr = v => v==null ? [] : Array.isArray(v) ? v : [v];
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store = {
+  get(k,area="local"){try{return (area==="session"?sessionStorage:localStorage).getItem(k)}catch(e){return null}},
+  set(k,v,area="local"){try{(area==="session"?sessionStorage:localStorage).setItem(k,v)}catch(e){}},
+  del(k,area="local"){try{(area==="session"?sessionStorage:localStorage).removeItem(k)}catch(e){}}
+};
+
+/* ======================= 노트 파싱 ======================= */
+function normCat(fm){
+  const raw = String(fm.category || (fm.source && fm.source.file) || "");
+  const m = raw.match(/\(?\s*(Bond|Credit|Currency|Fx|FX|Macro)\s*\)?/i);
+  if(!m) return "Other";
+  const k = m[1].toLowerCase();
+  return k==="bond"?"Bond":k==="credit"?"Credit":(k==="currency"||k==="fx")?"Currency":"Macro";
+}
+const lc = a => arr(a).map(x=>String(x).trim().toLowerCase()).filter(Boolean);
+function refKey(r){
+  if(r==null) return null;
+  if(typeof r==="string") return r.trim().toLowerCase().replace(/^https?:\/\/(dx\.)?doi\.org\//,"doi:");
+  if(r.doi) return ("doi:"+String(r.doi).trim().toLowerCase()).replace(/^doi:doi:/,"doi:");
+  if(r.id) return String(r.id).trim().toLowerCase();
+  if(r.title) return String(r.title).trim().toLowerCase();
+  return null;
+}
+function parseNote(path, raw){
+  const m = raw.replace(/^﻿/,"").match(/^---\s*\r?\n([\s\S]*?)\r?\n---\s*(?:\r?\n|$)([\s\S]*)$/);
+  if(!m) return {error:"frontmatter 없음", path};
+  let fm;
+  try{ fm = jsyaml.load(m[1]) || {}; }catch(e){ return {error:"YAML 오류: "+e.reason, path}; }
+  const stem = path.split("/").pop().replace(/\.md$/i,"");
+  const id = String(fm.id || stem);
+  return {
+    id, path, fm, body:m[2],
+    title: String(fm.title || id),
+    short: String(fm.short_title || fm.title || id),
+    cat: normCat(fm),
+    year: fm.year ?? "",
+    access: String(fm.access || "private"),
+    kw: lc(fm.keywords), topics: lc(fm.topics), methods: lc(fm.methods),
+    refs: arr(fm.references).map(refKey).filter(Boolean),
+    doi: fm.doi ? "doi:"+String(fm.doi).toLowerCase().replace(/^doi:/,"") : null,
+    rels: arr(fm.relations)
+  };
+}
+
+/* ======================= 그래프 구성 ======================= */
+function jacc(a,b){ if(!a.length||!b.length) return 0; const A=new Set(a); let i=0; for(const x of new Set(b)) if(A.has(x)) i++; return i/(A.size+new Set(b).size-i); }
+function shared(a,b){ const A=new Set(a); return [...new Set(b)].filter(x=>A.has(x)); }
+
+function buildGraph(){
+  const notes=[...S.notes.values()];
+  const old=new Map(S.nodes.map(n=>[n.id,n]));
+  S.nodes=[]; S.nodeById=new Map(); S.edges=[];
+  const catIdx=Object.keys(CATS);
+  for(const n of notes){
+    const o=old.get(n.id), ang=catIdx.indexOf(n.cat)*2*Math.PI/catIdx.length+(Math.random()-.5)*.9, rad=140+Math.random()*120;
+    const node={id:n.id, note:n, ghost:false, x:o?o.x:Math.cos(ang)*rad, y:o?o.y:Math.sin(ang)*rad, vx:0, vy:0, pinned:o?o.pinned:false, deg:0};
+    S.nodes.push(node); S.nodeById.set(n.id,node);
+  }
+  const doiToId=new Map(notes.filter(n=>n.doi).map(n=>[n.doi,n.id]));
+  const pairKey=(a,b)=>a<b?a+"|"+b:b+"|"+a;
+  const explicitPairs=new Set();
+  // 명시적 관계: 출발 Vault가 소유 (독립성 유지 — 상대 Vault는 수정하지 않음)
+  for(const n of notes){
+    for(const r of n.rels){
+      if(!r || !r.target) continue;
+      let t=String(r.target); const tk=refKey(t); if(doiToId.has(tk)) t=doiToId.get(tk);
+      const type=ALIAS[String(r.type||"").toLowerCase()] || ALIAS[String(r.type||"")] || "related";
+      let tn=S.nodeById.get(t);
+      if(!tn){ // 아직 수집되지 않은 대상 → 공백 노드
+        const src=S.nodeById.get(n.id), o=old.get(t);
+        tn={id:t, ghost:true, label:String(r.target_title||t), x:o?o.x:src.x+(Math.random()-.5)*80, y:o?o.y:src.y+(Math.random()-.5)*80, vx:0, vy:0, pinned:false, deg:0, citedBy:[]};
+        S.nodes.push(tn); S.nodeById.set(t,tn);
+      }
+      if(tn.ghost) tn.citedBy.push(n.id);
+      const w=Math.max(.1,Math.min(1,Number(r.confidence??.7)));
+      S.edges.push(mkEdge(S.nodeById.get(n.id),tn,type,w,true,{owner:n.id,note:r.note,claim:r.claim}));
+      explicitPairs.add(pairKey(n.id,t));
+    }
+  }
+  // 자동 근접: 키워드·토픽·참고문헌·방법론 중첩
+  for(let i=0;i<notes.length;i++) for(let j=i+1;j<notes.length;j++){
+    const a=notes[i], b=notes[j];
+    if(explicitPairs.has(pairKey(a.id,b.id))) continue;
+    const jk=jacc(a.kw,b.kw), jt=jacc(a.topics,b.topics), sr=shared(a.refs,b.refs).length, sm=shared(a.methods,b.methods);
+    const w=.5*jk+.3*jt+.2*Math.min(1,sr/3);
+    if(w<.04 && !sm.length) continue;
+    const type = sm.length ? "same_method" : "related";
+    S.edges.push(mkEdge(S.nodeById.get(a.id),S.nodeById.get(b.id),type,Math.max(w,sm.length?.25:0),false,
+      {why:{kw:shared(a.kw,b.kw),topics:shared(a.topics,b.topics),refs:sr,methods:sm}}));
+  }
+  computeGaps(notes, doiToId);
+  applyFilters();
+}
+function mkEdge(a,b,type,w,explicit,extra){
+  const T=TYPES[type];
+  const L0 = type==="related" ? T.L*(1.6-w) : T.L*(1.4-.5*w);
+  return Object.assign({a,b,type,w,explicit,L0,k:T.k*(.6+.8*w),tension:0,stretch:0},extra);
+}
+function applyFilters(){
+  S.active=S.edges.filter(e=>S.on.has(e.type) && (e.explicit || (S.implicit && e.w>=S.thr)));
+  S.conflictPairs=new Set(S.active.filter(e=>e.type==="contradicts").map(e=>e.a.id+"|"+e.b.id));
+  for(const n of S.nodes) n.deg=0;
+  for(const e of S.active){ e.a.deg++; e.b.deg++; }
+  for(const n of S.nodes) n.r = n.ghost ? 9 : 12+2.8*Math.sqrt(n.deg);
+  reheat(.6); renderStat(); if(S.tab!=="vault") renderPane();
+}
+function computeGaps(notes, doiToId){
+  const ids=new Set(notes.map(n=>n.id.toLowerCase())), titles=new Set(notes.map(n=>n.title.toLowerCase()));
+  const refCount=new Map();
+  for(const n of notes) for(const r of new Set(n.refs)){ if(!refCount.has(r)) refCount.set(r,[]); refCount.get(r).push(n.id); }
+  const missingRefs=[...refCount].filter(([r,by])=>by.length>=2 && !ids.has(r) && !titles.has(r) && !doiToId.has(r))
+    .sort((a,b)=>b[1].length-a[1].length);
+  const topicCount=new Map();
+  for(const n of notes) for(const t of new Set(n.topics)) topicCount.set(t,(topicCount.get(t)||0)+1);
+  const questions=[]; for(const n of notes) for(const q of arr(n.fm.open_questions)) questions.push({id:n.id,q:String(q)});
+  S.gaps={missingRefs, thinTopics:[...topicCount].filter(([,c])=>c===1).map(([t])=>t), questions};
+}
+
+/* ======================= 물리엔진 ======================= */
+function reheat(a=1){ S.alpha=Math.max(S.alpha,a); }
+function tick(){
+  const N=S.nodes, a=S.alpha;
+  if(a>.002){
+    for(let i=0;i<N.length;i++){ const p=N[i];
+      for(let j=i+1;j<N.length;j++){ const q=N[j];
+        let dx=q.x-p.x, dy=q.y-p.y, d2=dx*dx+dy*dy; if(d2<1){dx=Math.random()-.5;dy=Math.random()-.5;d2=1;}
+        const d=Math.sqrt(d2);
+        let m=1; if(S.conflictPairs.has(p.id+"|"+q.id)||S.conflictPairs.has(q.id+"|"+p.id)) m=CONFLICT_REPULSION;
+        let f=REP*m*a/d;
+        const minD=p.r+q.r+14; if(d<minD) f+=(minD-d)*.5;
+        const fx=dx/d*f, fy=dy/d*f;
+        p.vx-=fx*.5; p.vy-=fy*.5; q.vx+=fx*.5; q.vy+=fy*.5;
+      }
+    }
+    for(const e of S.active){
+      const dx=e.b.x-e.a.x, dy=e.b.y-e.a.y, d=Math.hypot(dx,dy)||1;
+      const f=e.k*(d-e.L0)*a, fx=dx/d*f, fy=dy/d*f;
+      e.a.vx+=fx*.5; e.a.vy+=fy*.5; e.b.vx-=fx*.5; e.b.vy-=fy*.5;
+    }
+    for(const n of N){
+      n.vx-=n.x*.006*a; n.vy-=n.y*.006*a;
+      if(n.pinned||n===S.drag){n.vx=n.vy=0;continue;}
+      n.vx*=.6; n.vy*=.6; n.x+=n.vx; n.y+=n.vy;
+    }
+    S.alpha+=(S.alphaTarget-S.alpha)*.02;
+    if(S.autoFit && S.alpha<.25){ S.autoFit=false; fit(); }
+    S.dirty=true;
+  }
+  // 장력은 alpha와 무관하게 현재 형상에서 측정 (정지 상태에서도 남는 긴장)
+  let mx=0;
+  for(const e of S.active){
+    const d=Math.hypot(e.b.x-e.a.x,e.b.y-e.a.y);
+    e.stretch=(d-e.L0)/e.L0; e.tension=e.k*(d-e.L0); mx=Math.max(mx,Math.abs(e.tension));
+  }
+  S.maxT=mx||1;
+}
+
+/* ======================= 렌더링 ======================= */
+const cv=$("field"); let cx=cv.getContext("2d");
+function readColors(){
+  const cs=getComputedStyle(document.documentElement), g=v=>cs.getPropertyValue(v).trim();
+  S.colors={field:g("--field"),dotgrid:g("--dotgrid"),ink:g("--ink"),muted:g("--muted"),line:g("--line"),accent:g("--accent"),surface:g("--surface"),face:g("--face"),blush:g("--blush"),outline:g("--outline"),belly:g("--belly"),beak:g("--beak")};
+  for(const [k,T] of Object.entries(TYPES)) S.colors[k]=g(T.css);
+  for(const [k,C] of Object.entries(CATS)) S.colors["c_"+k]=g(C.css);
+  S.dirty=true; drawParade();
+}
+function resize(){
+  const r=cv.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
+  cv.width=Math.max(1,r.width*dpr); cv.height=Math.max(1,r.height*dpr); S.W=r.width; S.H=r.height; S.dpr=dpr; S.dirty=true;
+}
+const toWorld=(sx,sy)=>({x:(sx-S.W/2-S.view.x)/S.view.k, y:(sy-S.H/2-S.view.y)/S.view.k});
+function neighborSet(){
+  if(!S.sel) return null; const s=new Set([S.sel]);
+  for(const e of S.active){ if(e.a.id===S.sel) s.add(e.b.id); if(e.b.id===S.sel) s.add(e.a.id); }
+  return s;
+}
+function matches(n){
+  if(!S.q) return true; if(n.ghost) return n.label.toLowerCase().includes(S.q);
+  const t=n.note; return t.title.toLowerCase().includes(S.q)||t.id.toLowerCase().includes(S.q)||t.kw.some(k=>k.includes(S.q))||t.topics.some(k=>k.includes(S.q));
+}
+/* ---- 손그림 스티커 동물: 범주마다 다른 오리지널 동물 ---- */
+const SEED=new Map();
+function seedOf(id){ if(SEED.has(id)) return SEED.get(id); let h=2166136261; for(const c of id){h^=c.charCodeAt(0);h=Math.imul(h,16777619);} const v=(h>>>0)/4294967296; SEED.set(id,v); return v; }
+function blob(x,y,rx,ry,sd){ // 살짝 삐뚤빼뚤한 손그림 윤곽
+  const N=16, P=[];
+  for(let i=0;i<N;i++){ const a=i/N*6.2832, w=1+.04*Math.sin(a*3+sd*6.28)+.025*Math.sin(a*5+sd*11), lo=Math.sin(a)>0?1.03:1;
+    P.push([x+Math.cos(a)*rx*w, y+Math.sin(a)*ry*w*lo]); }
+  cx.beginPath(); const m=(p,q)=>[(p[0]+q[0])/2,(p[1]+q[1])/2]; let s0=m(P[N-1],P[0]); cx.moveTo(s0[0],s0[1]);
+  for(let i=0;i<N;i++){ const nx=m(P[i],P[(i+1)%N]); cx.quadraticCurveTo(P[i][0],P[i][1],nx[0],nx[1]); }
+  cx.closePath();
+}
+function paint(fill,lw){ const C=S.colors; cx.fillStyle=fill; cx.fill(); cx.strokeStyle=C.outline; cx.lineWidth=lw; cx.lineJoin="round"; cx.stroke(); }
+function critter(n,hot,k){
+  const C=S.colors, r=n.r, x=n.x, y=n.y, sd=seedOf(n.id), body=C["c_"+n.note.cat], lw=Math.max(r*.13,1.3/k), cat=n.note.cat;
+  const tilt=(sd-.5)*.12; cx.save(); cx.translate(x,y); cx.rotate(tilt); cx.translate(-x,-y);
+  // 귀·뿔·지느러미 (몸 뒤)
+  if(cat==="Bond"){ for(const s of [-1,1]){ cx.beginPath(); cx.arc(x+s*r*.62,y-r*.72,r*.3,0,6.2832); paint(body,lw); cx.beginPath(); cx.arc(x+s*r*.62,y-r*.72,r*.14,0,6.2832); cx.fillStyle=C.blush; cx.fill(); } }
+  else if(cat==="Credit"){ for(const s of [-1,1]){ cx.beginPath(); cx.arc(x+s*r*.66,y-r*.66,r*.36,0,6.2832); paint(body,lw); } }
+  else if(cat==="Macro"){ for(const s of [-1,1]){ cx.beginPath(); cx.moveTo(x+s*r*.28,y-r*.86); cx.lineTo(x+s*r*.86,y-r*1.18); cx.lineTo(x+s*r*.82,y-r*.5); cx.closePath(); paint(body,lw); } }
+  else if(cat==="Currency"){ for(const s of [-1,1]){ cx.beginPath(); cx.ellipse(x+s*r*1.02,y+r*.42,r*.36,r*.18,s*.6,0,6.2832); paint(body,lw); } }
+  // 몸
+  blob(x,y,r*1.1,r,sd); paint(body,lw);
+  if(cat==="Other"){ cx.strokeStyle=C.outline; cx.lineWidth=lw; cx.lineCap="round"; cx.beginPath(); cx.moveTo(x,y-r*.98); cx.quadraticCurveTo(x-r*.05,y-r*1.35,x+r*.22,y-r*1.32); cx.stroke(); }
+  // 배·주둥이
+  if(cat==="Credit"){ cx.beginPath(); cx.ellipse(x,y+r*.22,r*.36,r*.26,0,0,6.2832); cx.fillStyle=C.belly; cx.fill(); }
+  if(cat==="Macro"){ cx.beginPath(); cx.ellipse(x,y+r*.42,r*.5,r*.38,0,0,6.2832); cx.fillStyle=C.belly; cx.fill();
+    cx.strokeStyle=C.outline; cx.lineWidth=lw*.6; for(const [dx,dy] of [[-.18,.36],[.18,.36],[0,.56]]){ cx.beginPath(); cx.moveTo(x+(dx-.08)*r,y+dy*r); cx.lineTo(x+dx*r,y+(dy+.08)*r); cx.lineTo(x+(dx+.08)*r,y+dy*r); cx.stroke(); } }
+  if(r*k>6){
+    const ey=y-r*.1, ex=r*.36, er=Math.max(r*.1,.9/k);
+    cx.fillStyle=C.face; cx.strokeStyle=C.face; cx.lineCap="round";
+    if(hot){ cx.lineWidth=Math.max(r*.08,1/k); for(const s of [-1,1]){ cx.beginPath(); cx.arc(x+s*ex,ey+er*.7,er*1.3,Math.PI*1.15,Math.PI*1.85); cx.stroke(); } }
+    else for(const s of [-1,1]){ cx.beginPath(); cx.arc(x+s*ex,ey,er,0,6.2832); cx.fill(); }
+    const ga=cx.globalAlpha; cx.globalAlpha=ga*.8; cx.fillStyle=C.blush;
+    for(const s of [-1,1]){ cx.beginPath(); cx.ellipse(x+s*r*.62,y+r*.14,r*.15,r*.09,0,0,6.2832); cx.fill(); }
+    cx.globalAlpha=ga;
+    if(cat==="Macro"||cat==="Other"){ // 부리
+      cx.beginPath(); cx.moveTo(x-r*.13,y+r*.02); cx.lineTo(x+r*.13,y+r*.02); cx.lineTo(x,y+r*.2); cx.closePath(); cx.fillStyle=C.beak; cx.fill(); cx.lineWidth=lw*.55; cx.strokeStyle=C.outline; cx.stroke();
+    } else { // ㅅ 입
+      cx.lineWidth=Math.max(r*.07,.8/k); cx.strokeStyle=C.face; cx.beginPath();
+      if(hot){ cx.arc(x,y+r*.08,r*.16,.1*Math.PI,.9*Math.PI); }
+      else { cx.moveTo(x-r*.12,y+r*.14); cx.quadraticCurveTo(x-r*.06,y+r*.04,x,y+r*.08); cx.quadraticCurveTo(x+r*.06,y+r*.04,x+r*.12,y+r*.14); }
+      cx.stroke();
+      if(cat==="Bond"||cat==="Currency"){ cx.beginPath(); cx.arc(x,y+r*.02,r*.06,0,6.2832); cx.fillStyle=cat==="Bond"?C.blush:C.face; cx.fill(); }
+    }
+    cx.lineCap="butt";
+  }
+  cx.restore();
+}
+function iconFor(n){ return S.icons.get("note:"+n.id) || S.icons.get("cat:"+n.note.cat) || null; }
+function drawIcon(n,im,hot,k){
+  const s=n.r*2.6*(hot?1.12:1), a=im.width/im.height, w=a>=1?s:s*a, h=a>=1?s/a:s;
+  const ga=cx.globalAlpha; cx.globalAlpha=ga*.5; cx.fillStyle=S.colors.line; cx.beginPath(); cx.ellipse(n.x,n.y+h*.46,w*.36,h*.07,0,0,6.2832); cx.fill(); cx.globalAlpha=ga;
+  cx.drawImage(im,n.x-w/2,n.y-h/2,w,h);
+}
+function drawParade(){
+  const pc=$("parade"); if(!pc||pc.offsetParent===null) return;
+  const r0=pc.getBoundingClientRect(), dpr=window.devicePixelRatio||1; if(!r0.width) return;
+  pc.width=r0.width*dpr; pc.height=r0.height*dpr; const keep=cx; cx=pc.getContext("2d");
+  cx.setTransform(dpr,0,0,dpr,0,0); cx.clearRect(0,0,r0.width,r0.height);
+  const cats=Object.keys(CATS), step=r0.width/cats.length, r=Math.min(22,step*.28);
+  cats.forEach((c,i)=>{ const n={id:"parade-"+c,x:step*(i+.5),y:r0.height*.42+(i%2?3:-2),r,note:{cat:c}}; critter(n,i===0,1);
+    cx.fillStyle=S.colors.muted; cx.font=`12px ${getComputedStyle(document.body).fontFamily}`; cx.textAlign="center"; cx.fillText(CATS[c].label,n.x,r0.height-2); cx.textAlign="left"; });
+  cx=keep;
+}
+function draw(){
+  const C=S.colors, k=S.view.k, dpr=S.dpr;
+  cx.setTransform(dpr,0,0,dpr,0,0);
+  cx.fillStyle=C.field; cx.fillRect(0,0,S.W,S.H);
+  { const gs=26*k, ox=((S.W/2+S.view.x)%gs+gs)%gs, oy=((S.H/2+S.view.y)%gs+gs)%gs; if(gs>9){ cx.fillStyle=C.dotgrid;
+    for(let x=ox;x<S.W;x+=gs) for(let y=oy;y<S.H;y+=gs){ cx.beginPath(); cx.arc(x,y,1.6,0,6.283); cx.fill(); } } }
+  cx.translate(S.W/2+S.view.x,S.H/2+S.view.y); cx.scale(k,k);
+  const nb=neighborSet();
+  const fade=n=> (nb && !nb.has(n.id)) || (S.q && !matches(n));
+  // edges
+  for(const e of S.active){
+    const dim=fade(e.a)||fade(e.b) || (nb && !(e.a.id===S.sel||e.b.id===S.sel));
+    const tn=Math.min(1,Math.abs(e.tension)/S.maxT);
+    let w = S.tensionView ? .6+4.2*tn : .6+2.2*e.w;
+    cx.globalAlpha = dim ? .08 : (e.explicit ? .9 : .55);
+    cx.strokeStyle=C[e.type]; cx.lineWidth=w/k*Math.min(1.6,Math.max(.7,k));
+    cx.setLineDash(e.explicit?[]:[4/k,4/k]);
+    cx.lineCap="round"; cx.beginPath(); cx.moveTo(e.a.x,e.a.y); cx.lineTo(e.b.x,e.b.y); cx.stroke(); cx.lineCap="butt";
+    if(e.explicit && !dim){ // 방향: 출발 Vault → 대상
+      const dx=e.b.x-e.a.x, dy=e.b.y-e.a.y, d=Math.hypot(dx,dy)||1, ux=dx/d, uy=dy/d;
+      const tx=e.b.x-ux*(e.b.r+3), ty=e.b.y-uy*(e.b.r+3), s=7/k;
+      cx.setLineDash([]); cx.fillStyle=C[e.type];
+      cx.beginPath(); cx.moveTo(tx,ty); cx.lineTo(tx-ux*s-uy*s*.5,ty-uy*s+ux*s*.5); cx.lineTo(tx-ux*s+uy*s*.5,ty-uy*s-ux*s*.5); cx.closePath(); cx.fill();
+    }
+  }
+  cx.setLineDash([]);
+  // nodes
+  for(const n of S.nodes){
+    const dim=fade(n); cx.globalAlpha=dim?.18:1;
+    const hot = n.id===S.sel || n===S.hover;
+    if(n.ghost){ blob(n.x,n.y,n.r*1.1,n.r,seedOf(n.id)); cx.setLineDash([3/k,3/k]); cx.strokeStyle=C.muted; cx.lineWidth=1.8/k; cx.fillStyle=C.field; cx.fill(); cx.stroke(); cx.setLineDash([]);
+      if(n.r*k>5){ cx.fillStyle=C.muted; cx.font=`${n.r*1.3}px ${getComputedStyle(document.body).fontFamily}`; cx.textAlign="center"; cx.textBaseline="middle"; cx.fillText("?",n.x,n.y+n.r*.08); cx.textAlign="left"; } }
+    else { const im=iconFor(n); if(im) drawIcon(n,im,hot,k); else critter(n,hot,k); }
+    if(hot || (S.q && matches(n))){ cx.beginPath(); cx.ellipse(n.x,n.y+n.r*.05,n.r*1.45,n.r*1.35,0,0,Math.PI*2); cx.strokeStyle=C.accent; cx.lineWidth=2.5/k; cx.setLineDash([5/k,3/k]); cx.stroke(); cx.setLineDash([]); }
+    if(n.pinned){ cx.fillStyle=C.accent; cx.beginPath(); cx.arc(n.x+n.r*.7,n.y-n.r*.7,2.6/k,0,Math.PI*2); cx.fill(); }
+  }
+  // labels
+  cx.font=`${12/k}px ${getComputedStyle(document.body).fontFamily}`; cx.textBaseline="middle";
+  for(const n of S.nodes){
+    const show = k>1.15 || n.id===S.sel || n===S.hover || (nb&&nb.has(n.id)) || (S.q&&matches(n)) || (!n.ghost && n.deg>=4);
+    if(!show || fade(n)) continue;
+    let t = n.ghost ? n.label : n.note.short; if(t.length>26) t=t.slice(0,25)+"…";
+    cx.globalAlpha=n.ghost?.75:1; cx.lineWidth=3/k; cx.strokeStyle=C.field; cx.strokeText(t,n.x+n.r*1.25+4/k,n.y); cx.fillStyle=C.ink; cx.fillText(t,n.x+n.r*1.25+4/k,n.y);
+  }
+  cx.globalAlpha=1; S.dirty=false;
+}
+function fit(){
+  const N=S.nodes; if(!N.length||!S.W) return;
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9; for(const n of N){x0=Math.min(x0,n.x);y0=Math.min(y0,n.y);x1=Math.max(x1,n.x);y1=Math.max(y1,n.y);}
+  const pad=110, k=Math.min(2,Math.max(.25,Math.min((S.W-pad*2)/Math.max(1,x1-x0),(S.H-pad*2)/Math.max(1,y1-y0))));
+  S.view.k=k; S.view.x=-(x0+x1)/2*k; S.view.y=-(y0+y1)/2*k; S.dirty=true;
+}
+function loop(){ tick(); if(S.dirty) draw(); requestAnimationFrame(loop); }
+
+/* ======================= 상호작용 ======================= */
+function hit(sx,sy){
+  const p=toWorld(sx,sy); let best=null,bd=1e9;
+  for(const n of S.nodes){ const d=Math.hypot(n.x-p.x,n.y-p.y); if(d<n.r+5/S.view.k && d<bd){bd=d;best=n;} }
+  return best;
+}
+const ptrs=new Map(); let pinch=null, moved=false, downAt=null;
+cv.addEventListener("pointerdown",ev=>{
+  cv.setPointerCapture(ev.pointerId); const r=cv.getBoundingClientRect(), sx=ev.clientX-r.left, sy=ev.clientY-r.top;
+  ptrs.set(ev.pointerId,{x:sx,y:sy});
+  if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y),k:S.view.k}; S.drag=null; S.pan=null; return; }
+  moved=false; downAt={x:sx,y:sy};
+  const n=hit(sx,sy);
+  if(n){ S.drag=n; S.alphaTarget=.25; reheat(.3); cv.classList.add("dragging"); }
+  else { S.pan={x:sx,y:sy,vx:S.view.x,vy:S.view.y}; cv.classList.add("dragging"); }
+});
+cv.addEventListener("pointermove",ev=>{
+  const r=cv.getBoundingClientRect(), sx=ev.clientX-r.left, sy=ev.clientY-r.top;
+  if(ptrs.has(ev.pointerId)) ptrs.set(ev.pointerId,{x:sx,y:sy});
+  if(pinch && ptrs.size===2){ const [a,b]=[...ptrs.values()]; S.view.k=Math.min(4,Math.max(.2,pinch.k*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d)); S.dirty=true; return; }
+  if(downAt && Math.hypot(sx-downAt.x,sy-downAt.y)>3) moved=true;
+  if(S.drag){ const p=toWorld(sx,sy); S.drag.x=p.x; S.drag.y=p.y; S.dirty=true; return; }
+  if(S.pan){ S.view.x=S.pan.vx+(sx-S.pan.x); S.view.y=S.pan.vy+(sy-S.pan.y); S.dirty=true; return; }
+  const h=hit(sx,sy); if(h!==S.hover){ S.hover=h; S.dirty=true; }
+  const tip=$("tip");
+  if(h){ tip.hidden=false; tip.style.left=Math.min(sx+14,S.W-290)+"px"; tip.style.top=(sy+14)+"px";
+    tip.innerHTML = h.ghost ? `<strong>미수집 대상</strong><br>${esc(h.label)}<br><span class="muted">${h.citedBy.length}개 Vault가 관계를 선언</span>`
+      : `<strong>${esc(h.note.title)}</strong><br><span class="muted">${esc(CATS[h.note.cat].label)} · ${esc(h.note.year)} · 연결 ${h.deg}</span>`; }
+  else tip.hidden=true;
+});
+function endPtr(ev){
+  ptrs.delete(ev.pointerId); if(ptrs.size<2) pinch=null;
+  if(S.drag && !moved){ select(S.drag.id); }
+  else if(!S.drag && S.pan && !moved){ select(null); }
+  if(S.drag){ S.alphaTarget=0; }
+  S.drag=null; S.pan=null; downAt=null; cv.classList.remove("dragging");
+}
+cv.addEventListener("pointerup",endPtr); cv.addEventListener("pointercancel",endPtr);
+cv.addEventListener("pointerleave",()=>{ $("tip").hidden=true; if(S.hover){S.hover=null;S.dirty=true;} });
+cv.addEventListener("dblclick",ev=>{ const r=cv.getBoundingClientRect(); const n=hit(ev.clientX-r.left,ev.clientY-r.top); if(n){ n.pinned=!n.pinned; reheat(.3);} });
+cv.addEventListener("wheel",ev=>{
+  ev.preventDefault(); const r=cv.getBoundingClientRect(), sx=ev.clientX-r.left, sy=ev.clientY-r.top;
+  const p=toWorld(sx,sy), nk=Math.min(4,Math.max(.2,S.view.k*Math.exp(-ev.deltaY*.0015)));
+  S.view.k=nk; S.view.x=sx-S.W/2-p.x*nk; S.view.y=sy-S.H/2-p.y*nk; S.dirty=true;
+},{passive:false});
+
+function select(id){
+  S.sel=id; S.bodyOpen=false; S.dirty=true;
+  if(id){ setTab("vault"); } else renderPane();
+}
+function focusNode(id){
+  const n=S.nodeById.get(id); if(!n) return;
+  S.view.x=-n.x*S.view.k; S.view.y=-n.y*S.view.k; select(id);
+}
+
+/* ======================= 패널 ======================= */
+function setTab(t){ S.tab=t; document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.tab===t))); renderPane(); }
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>setTab(b.dataset.tab)));
+function nameOf(id){ const n=S.nodeById.get(id); return !n?id : n.ghost? n.label : n.note.short; }
+function tex(s,display){ try{ return katex.renderToString(String(s),{output:"mathml",displayMode:!!display,throwOnError:false}); }catch(e){ return `<code>${esc(s)}</code>`; } }
+
+function capsuleOf(n){
+  const fm=n.fm, src=fm.source||{};
+  const c={id:n.id, title:n.title, source:{file:src.file??null, drive_id:src.drive_id??null, pages:src.pages??null}, access:n.access,
+    keywords:arr(fm.keywords), topics:arr(fm.topics)};
+  if(n.access!=="restricted") c.summary = (fm.capsule&&fm.capsule.summary) || fm.summary || (arr(fm.claims)[0]||{}).text || null;
+  c.relations = n.rels.filter(r=>r&&r.target).map(r=>({target:String(r.target), type:ALIAS[String(r.type||"").toLowerCase()]||"related"}));
+  return c;
+}
+function renderMarkdown(md){
+  const math=[]; const put=(t,d)=>{ math.push(tex(t,d)); return `KXM${math.length-1}KXM`; };
+  let s=md.replace(/\$\$([\s\S]+?)\$\$/g,(_,t)=>put(t,true)).replace(/\\\[([\s\S]+?)\\\]/g,(_,t)=>put(t,true))
+          .replace(/\\\(([\s\S]+?)\\\)/g,(_,t)=>put(t,false)).replace(/\$(?!\s)([^$\n]+?)(?<!\s)\$/g,(_,t)=>put(t,false));
+  let html=DOMPurify.sanitize(marked.parse(s,{gfm:true}));
+  return html.replace(/KXM(\d+)KXM/g,(_,i)=>math[+i]);
+}
+function renderPane(){
+  const P=$("pane");
+  if(S.tab==="vault") return renderVault(P);
+  if(S.tab==="tension") return renderTension(P);
+  return renderGaps(P);
+}
+function renderVault(P){
+  const node=S.sel && S.nodeById.get(S.sel);
+  if(!node){
+    const cats=Object.entries(CATS).map(([k,c])=>`<span><span class="dot" style="background:var(${c.css})"></span>${c.label}</span>`).join(" ");
+    P.innerHTML=`<div class="empty"><div class="greet">${SHREW}<div class="bubble">동글이를 콕 눌러 보세요! 논문 노트를 펼쳐 드릴게요.</div></div>
+      <p>끌어당기면 연결된 노트들이 실처럼 따라오고, 두 번 누르면 그 자리에 고정돼요. 휠로 확대·축소할 수 있어요.</p>
+      <div class="note">선 굵기는 <strong>장력</strong>입니다. 관계가 끌어당기는데 다른 힘(반박 쌍의 척력, 주변 클러스터)에 막혀 늘어나 있을수록 굵어집니다. 진위가 아니라 <em>먼저 들여다볼 곳</em>을 가리킵니다.</div>
+      <h3>범주</h3><div class="meta">${cats}</div>
+      <h3>관계</h3><div class="meta">${Object.entries(TYPES).map(([k,t])=>`<span class="tag" style="color:var(${t.css})">${t.label}</span>`).join("")}</div></div>`;
+    return;
+  }
+  if(node.ghost){
+    P.innerHTML=`<span class="eyebrow">미수집 대상 · 공백</span><h2>${esc(node.label)}</h2>
+      <p class="muted">이 대상은 Vault에 없지만 다음 Vault가 관계를 선언했습니다. 원문을 Drive에 올리고 정독하면 실선 노드로 바뀝니다.</p>
+      <ul class="plain">${node.citedBy.map(id=>`<li><button class="linkish" data-go="${esc(id)}">${esc(nameOf(id))}</button></li>`).join("")}</ul>`;
+    bindGo(P); return;
+  }
+  const n=node.note, fm=n.fm, src=fm.source||{}, cap=capsuleOf(n);
+  const rels=S.active.filter(e=>e.a.id===n.id||e.b.id===n.id).sort((x,y)=>Math.abs(y.tension)-Math.abs(x.tension));
+  const relHtml=rels.map(e=>{
+    const other=e.a.id===n.id?e.b:e.a, dir=e.explicit?(e.a.id===n.id?"→":"←"):"↔";
+    const why=e.why?[e.why.methods.length?"방법론: "+e.why.methods.join(", "):"", e.why.kw.length?"키워드: "+e.why.kw.slice(0,4).join(", "):"", e.why.refs?`공통 인용 ${e.why.refs}건`:""].filter(Boolean).join(" · "):(e.note||"");
+    return `<div class="rel" data-go="${esc(other.id)}" tabindex="0"><span class="ty" style="color:var(${TYPES[e.type].css})">${dir} ${TYPES[e.type].label}</span>
+      <span class="nm">${esc(nameOf(other.id))}<small>장력 ${e.tension.toFixed(2)} · 늘어남 ${(e.stretch*100).toFixed(0)}%${why?" · "+esc(why):""}</small></span></div>`;
+  }).join("") || `<p class="muted">현재 필터에서 연결이 없습니다.</p>`;
+  const claims=arr(fm.claims).map(c=>typeof c==="string"?{text:c}:c).map(c=>`<li class="claim">${esc(c.text)}${c.evidence?`<small>근거 ${esc(c.evidence)}</small>`:""}</li>`).join("");
+  const eqs=arr(fm.equations).map(q=>typeof q==="string"?{latex:q}:q).map(q=>`<div class="eq">${tex(q.latex,true)}${q.meaning||q.section?`<div class="m">${q.section?`<span class="tag">${esc(q.section)}</span> `:""}${esc(q.meaning||"")}</div>`:""}</div>`).join("");
+  const drive=src.drive_id?`<a href="https://drive.google.com/file/d/${encodeURIComponent(src.drive_id)}/view" target="_blank" rel="noopener noreferrer">Drive 원본</a>`:"—";
+  P.innerHTML=`<span class="eyebrow" style="color:var(${CATS[n.cat].css})">${CATS[n.cat].label}</span>
+    <h2>${esc(n.title)}</h2>
+    <div class="meta">${n.year?`<span class="tag">${esc(n.year)}</span>`:""}${fm.venue?`<span class="tag">${esc(fm.venue)}</span>`:""}
+      <span class="tag acc">${esc(n.access)}</span>${fm.reader?`<span class="tag">정독: ${esc(fm.reader)}</span>`:""}${arr(fm.read_scope).length?`<span class="tag">${esc(arr(fm.read_scope).join("·"))}</span>`:""}</div>
+    <h3>출처</h3>
+    <dl class="kv"><dt>저자</dt><dd>${esc(arr(fm.authors).join(", ")||"—")}</dd><dt>파일</dt><dd class="mono" style="font-size:11.5px">${esc(src.file||"—")}</dd><dt>원본</dt><dd>${drive}</dd><dt>노트</dt><dd class="mono" style="font-size:11.5px">${esc(n.path)}</dd></dl>
+    <h3>관계 (${rels.length})</h3>${relHtml}
+    ${claims?`<h3>핵심 주장</h3><ul class="plain">${claims}</ul>`:""}
+    ${eqs?`<h3>핵심 수식</h3><div style="display:grid;gap:8px">${eqs}</div>`:""}
+    ${arr(fm.methods).length?`<h3>방법론</h3><div class="meta">${arr(fm.methods).map(x=>`<span class="tag">${esc(x)}</span>`).join("")}</div>`:""}
+    <h3>키워드 · 토픽</h3><div class="meta">${arr(fm.keywords).map(x=>`<span class="tag">${esc(x)}</span>`).join("")}${arr(fm.topics).map(x=>`<span class="tag" style="border-style:dashed">${esc(x)}</span>`).join("")}</div>
+    <h3>교환 캡슐 <small>다른 Vault·에이전트에 넘기는 최소 컨텍스트</small></h3>
+    <pre class="capsule" id="cap">${esc(JSON.stringify(cap,null,2))}</pre>
+    <div class="actions" style="margin-top:8px"><button class="btn small" id="btn-cap" type="button">캡슐 복사</button>
+      <button class="btn small" id="btn-body" type="button">${S.bodyOpen?"본문 닫기":"본문 노트 열기"}</button></div>
+    <div id="body-slot"></div>`;
+  bindGo(P);
+  $("btn-cap").onclick=async()=>{ const b=$("btn-cap"); try{ await navigator.clipboard.writeText(JSON.stringify(cap,null,2)); b.textContent="복사됨"; }catch(e){ const r=document.createRange(); r.selectNodeContents($("cap")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent="선택됨 — Ctrl+C"; } };
+  $("btn-body").onclick=()=>{ S.bodyOpen=!S.bodyOpen; renderVault(P); if(S.bodyOpen) $("body-slot").scrollIntoView({block:"start"}); };
+  if(S.bodyOpen) $("body-slot").innerHTML=`<h3>본문</h3><div class="body-md">${renderMarkdown(n.body)}</div>`;
+}
+function bindGo(P){ P.querySelectorAll("[data-go]").forEach(el=>{ const go=()=>focusNode(el.dataset.go); el.addEventListener("click",go); el.addEventListener("keydown",e=>{if(e.key==="Enter")go();}); }); }
+
+function renderTension(P){
+  const list=[...S.active].sort((a,b)=>Math.abs(b.tension)-Math.abs(a.tension)).slice(0,20);
+  const byType={}; for(const e of S.active){ byType[e.type]=(byType[e.type]||0)+1; }
+  P.innerHTML=`<h2>장력 상위 연결</h2>
+    <div class="note">관계가 기대 거리(L₀)보다 얼마나 늘어나 있는지 × 스프링 강도입니다. 반박 쌍은 서로 당기면서 밀어내도록 설계되어 장력이 남습니다. 높은 장력 = 먼저 대조해 볼 연결이지, 어느 쪽이 맞다는 뜻은 아닙니다.</div>
+    <h3>현재 연결 구성</h3><div class="meta">${Object.entries(byType).map(([k,c])=>`<span class="tag" style="color:var(${TYPES[k].css})">${TYPES[k].label} ${c}</span>`).join("")||"<span class=muted>연결 없음</span>"}</div>
+    <h3>상위 ${list.length}</h3>
+    ${list.map(e=>{ const t=Math.abs(e.tension)/S.maxT; return `<div class="tbar" data-go="${esc(e.a.id)}" tabindex="0">
+      <span class="nm">${esc(nameOf(e.a.id))} <span class="muted">${e.explicit?"→":"↔"}</span> ${esc(nameOf(e.b.id))}<br><small style="color:var(${TYPES[e.type].css})">${TYPES[e.type].label}${e.explicit?"":" · 자동"}</small></span>
+      <span class="val">${e.tension.toFixed(2)}<br><span class="muted">${(e.stretch*100).toFixed(0)}%</span></span>
+      <span class="meter"><i style="width:${(t*100).toFixed(1)}%;background:var(${TYPES[e.type].css})"></i></span></div>`;}).join("")}`;
+  bindGo(P);
+}
+function renderGaps(P){
+  const G=S.gaps||{missingRefs:[],thinTopics:[],questions:[]};
+  const ghosts=S.nodes.filter(n=>n.ghost), iso=S.nodes.filter(n=>!n.ghost&&n.deg===0);
+  P.innerHTML=`<h2>공백 탐색</h2>
+    <div class="note">Vault 사이의 빈 곳입니다. 다음에 읽을 논문, 다시 정독할 노트를 고르는 데 쓰세요.</div>
+    <h3>관계는 있으나 미수집 (${ghosts.length})</h3>
+    ${ghosts.map(g=>`<div class="gap-item"><button class="linkish" data-go="${esc(g.id)}">${esc(g.label)}</button><span>${g.citedBy.length} Vault</span></div>`).join("")||`<p class="muted">없음</p>`}
+    <h3>2개 이상 Vault가 인용했지만 미수집 (${G.missingRefs.length})</h3>
+    ${G.missingRefs.slice(0,15).map(([r,by])=>`<div class="gap-item"><span class="mono" style="font-size:12px;overflow-wrap:anywhere">${esc(r)}</span><span>${by.length}회</span></div>`).join("")||`<p class="muted">없음</p>`}
+    <h3>고립된 Vault (${iso.length})</h3>
+    ${iso.map(n=>`<div class="gap-item"><button class="linkish" data-go="${esc(n.id)}">${esc(n.note.short)}</button><span>${esc(CATS[n.note.cat].label)}</span></div>`).join("")||`<p class="muted">없음 — 현재 필터 기준</p>`}
+    <h3>열린 질문 (${G.questions.length})</h3>
+    <ul class="plain">${G.questions.map(q=>`<li class="claim">${esc(q.q)}<small><button class="linkish" data-go="${esc(q.id)}">${esc(nameOf(q.id))}</button></small></li>`).join("")||`<li class="muted">없음</li>`}</ul>
+    <h3>한 Vault에만 등장하는 토픽 (${G.thinTopics.length})</h3>
+    <div class="meta">${G.thinTopics.slice(0,30).map(t=>`<span class="tag">${esc(t)}</span>`).join("")||`<span class="muted">없음</span>`}</div>`;
+  bindGo(P);
+}
+function renderStat(){
+  const real=S.nodes.filter(n=>!n.ghost).length, gh=S.nodes.length-real, ex=S.active.filter(e=>e.explicit).length;
+  $("stat").textContent=`Vault ${real} · 미수집 ${gh} · 명시 관계 ${ex} · 자동 ${S.active.length-ex}`;
+}
+function renderChips(){
+  $("type-chips").innerHTML=Object.entries(TYPES).map(([k,t])=>`<button type="button" class="chip" data-t="${k}" aria-pressed="${S.on.has(k)}" style="color:var(${t.css})"><span class="sw"></span><span style="color:var(--ink)">${t.label}</span></button>`).join("");
+  $("type-chips").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{ const k=c.dataset.t; S.on.has(k)?S.on.delete(k):S.on.add(k); c.setAttribute("aria-pressed",String(S.on.has(k))); applyFilters(); });
+  $("legend-cat").innerHTML=Object.values(CATS).map(c=>`<span title="${c.animal}"><span class="dot" style="background:var(${c.css})"></span>${c.label} <span class="muted">${c.animal}</span></span>`).join("");
+}
+
+/* ======================= GitHub 로더 ======================= */
+async function gh(path, accept){
+  let r;
+  try{
+    r=await fetch("https://api.github.com"+path,{headers:{Authorization:"Bearer "+S.token, Accept:accept||"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"},cache:"no-store"});
+  }catch(e){ throw new Error("GitHub API에 접속하지 못했습니다. 네트워크를 확인하세요. claude.ai 미리보기 안에서는 외부 접속이 차단되므로, GitHub Pages에 배포한 페이지에서 여세요."); }
+  if(r.status===401) throw new Error("토큰이 유효하지 않거나 만료되었습니다. 새 토큰을 발급해 입력하세요.");
+  if(r.status===403){ const rem=r.headers.get("x-ratelimit-remaining"); throw new Error(rem==="0"?"GitHub API 호출 한도에 도달했습니다. 잠시 후 다시 시도하세요.":"이 토큰에 저장소 Contents 읽기 권한이 없습니다."); }
+  if(r.status===404) throw new Error("저장소·브랜치·경로를 찾지 못했습니다. 이름과, 토큰이 이 저장소에 접근하도록 설정됐는지 확인하세요.");
+  if(!r.ok) throw new Error(`GitHub 응답 오류 ${r.status}`);
+  return r;
+}
+const encPath=p=>p.split("/").map(encodeURIComponent).join("/");
+async function loadRepo(){
+  const [o,rp]=S.repo.split("/");
+  const tree=await (await gh(`/repos/${encodeURIComponent(o)}/${encodeURIComponent(rp)}/git/trees/${encodeURIComponent(S.branch)}?recursive=1`)).json();
+  S.treePaths=tree.tree.filter(t=>t.type==="blob").map(t=>t.path);
+  const files=tree.tree.filter(t=>t.type==="blob" && t.path.startsWith(S.prefix) && /\.md$/i.test(t.path) && !t.path.split("/").pop().startsWith("_"));
+  if(!files.length) throw new Error(`'${S.prefix}' 아래에 .md 노트가 없습니다. Vault 폴더 경로를 확인하세요.`);
+  const out=[], errs=[]; let i=0;
+  async function worker(){ while(i<files.length){ const f=files[i++];
+    try{ const txt=await (await gh(`/repos/${encodeURIComponent(o)}/${encodeURIComponent(rp)}/contents/${encPath(f.path)}?ref=${encodeURIComponent(S.branch)}`,"application/vnd.github.raw+json")).text();
+      const n=parseNote(f.path,txt); n.error?errs.push(n):out.push(n); }catch(e){ errs.push({path:f.path,error:e.message}); } } }
+  await Promise.all(Array.from({length:Math.min(8,files.length)},worker));
+  if(tree.truncated) errs.push({path:"(tree)",error:"파일 목록이 잘렸습니다. Vault 폴더를 좁혀 주세요."});
+  return {notes:out, errs};
+}
+// 노드 이미지: 저장소의 theme/theme.json + 노트 frontmatter의 icon 경로
+async function loadIcons(notes){
+  S.icons=new Map(); if(S.demo||!S.token) return;
+  const [o,rp]=S.repo.split("/"), base=`/repos/${encodeURIComponent(o)}/${encodeURIComponent(rp)}/contents/`, ref=`?ref=${encodeURIComponent(S.branch)}`;
+  const want=new Map();
+  try{ const th=await (await gh(base+"theme/theme.json"+ref,"application/vnd.github.raw+json")).json();
+    for(const [cat,path] of Object.entries(th.categories||{})) if(CATS[cat]&&path) want.set("cat:"+cat,String(path));
+    const lg=arr(th.login).slice(0,2);
+    for(let i=0;i<lg.length;i++) want.set("login:"+(i+1),String(lg[i]));
+  }catch(e){ /* theme.json 없음 → 파일 이름 규칙으로 찾음 */ }
+  // 파일 이름 규칙 (theme.json에 없는 칸만 채움): theme/login-1.png, theme/bond.png, theme/notes/<노트id>.png
+  const IMG=/\.(png|webp|gif|jpe?g)$/i, byStem=new Map();
+  for(const path of (S.treePaths||[])) if(path.startsWith("theme/") && IMG.test(path)) byStem.set(path.slice(6).replace(IMG,"").toLowerCase(),path);
+  const NAMES={"login:1":["login-1"],"login:2":["login-2"],"cat:Bond":["bond"],"cat:Credit":["credit"],"cat:Currency":["currency","fx"],"cat:Macro":["macro"],"cat:Other":["other"]};
+  for(const [key,stems] of Object.entries(NAMES)) if(!want.has(key)){ const hit=stems.map(x=>byStem.get(x)).find(Boolean); if(hit) want.set(key,hit); }
+  for(const n of notes){ const hit=byStem.get("notes/"+n.id.toLowerCase()); if(hit && !n.fm.icon) want.set("note:"+n.id,hit); }
+  for(const n of notes) if(n.fm.icon) want.set("note:"+n.id,String(n.fm.icon).replace(/^\/+/,""));
+  await Promise.all([...want].map(async([key,path])=>{
+    try{ const blob=await (await gh(base+encPath(path)+ref,"application/vnd.github.raw+json")).blob();
+      if(key.startsWith("login:")){ const f=new File([blob],"x"); store.set("vault.hero"+key.slice(6), await shrinkToDataURL(f)); return; }
+      const bmp=await createImageBitmap(blob); S.icons.set(key,bmp);
+    }catch(e){ console.warn("이미지 로드 실패",path,e.message); }
+  }));
+  S.dirty=true;
+}
+function ingest(notes){
+  S.notes=new Map(); const seen=new Set();
+  for(const n of notes){ if(seen.has(n.id)){ console.warn("중복 id", n.id, n.path); continue; } seen.add(n.id); S.notes.set(n.id,n); }
+  buildGraph(); S.view={x:0,y:0,k:1}; S.sel=null; S.alpha=1; S.autoFit=true; renderPane();
+}
+
+/* ======================= 화면 전환 ======================= */
+function showApp(){ $("gate").hidden=true; $("app").hidden=false; $("demo-flag").hidden=!S.demo; resize(); readColors(); renderChips(); }
+function lock(){
+  renderHeroes();
+  S.token=null; store.del("vault.token","session"); S.notes=new Map(); S.nodes=[]; S.edges=[]; S.active=[];
+  $("app").hidden=true; $("gate").hidden=false; $("gh-token").value=""; $("gate-err").hidden=true;
+}
+async function connect(){
+  const err=$("gate-err"), btn=$("btn-connect"); err.hidden=true;
+  const repo=$("gh-repo").value.trim().replace(/^https?:\/\/github\.com\//,"").replace(/\.git$/,"").replace(/\/+$/,"");
+  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)){ err.textContent="저장소는 owner/repo 형식으로 입력하세요."; err.hidden=false; return; }
+  S.repo=repo; S.branch=$("gh-branch").value.trim()||"main";
+  let pf=$("gh-prefix").value.trim().replace(/^\.?\/+/,""); if(pf && !pf.endsWith("/")) pf+="/"; S.prefix=pf;
+  S.token=$("gh-token").value.trim(); S.demo=false;
+  if(!S.token){ err.textContent="토큰을 입력하세요."; err.hidden=false; return; }
+  btn.disabled=true; btn.textContent="불러오는 중…";
+  try{
+    const {notes,errs}=await loadRepo();
+    store.set("vault.cfg",JSON.stringify({repo:S.repo,branch:S.branch,prefix:S.prefix}));
+    if($("gh-remember").checked) store.set("vault.token",S.token,"session"); else store.del("vault.token","session");
+    showApp(); ingest(notes); loadIcons(notes);
+    if(errs.length) console.warn("읽지 못한 노트", errs), $("stat").textContent+=` · 오류 ${errs.length}`;
+  }catch(e){ err.textContent=e.message; err.hidden=false; }
+  finally{ btn.disabled=false; btn.textContent="Vault 열기"; }
+}
+$("conn").addEventListener("submit",e=>{e.preventDefault(); connect();});
+$("btn-demo").onclick=()=>{ S.icons=new Map(); S.demo=true; S.token=null; showApp(); ingest(DEMO.map(([p,t])=>parseNote(p,t))); };
+$("btn-lock").onclick=lock;
+$("btn-reload").onclick=async()=>{ if(S.demo){ ingest(DEMO.map(([p,t])=>parseNote(p,t))); return; }
+  const b=$("btn-reload"); b.disabled=true; try{ const {notes}=await loadRepo(); ingest(notes); loadIcons(notes); }catch(e){ alertInPane(e.message); } finally{ b.disabled=false; } };
+function alertInPane(m){ $("pane").insertAdjacentHTML("afterbegin",`<p class="err">${esc(m)}</p>`); }
+$("btn-reheat").onclick=()=>{ for(const n of S.nodes){ if(!n.pinned){ n.x+=(Math.random()-.5)*60; n.y+=(Math.random()-.5)*60; } } reheat(1); };
+$("btn-fit").onclick=fit;
+$("btn-unpin").onclick=()=>{ S.nodes.forEach(n=>n.pinned=false); reheat(.5); };
+$("t-implicit").onchange=e=>{ S.implicit=e.target.checked; applyFilters(); };
+$("t-thr").oninput=e=>{ S.thr=+e.target.value; $("t-thr-v").textContent=S.thr.toFixed(2); applyFilters(); };
+$("t-tension").onchange=e=>{ S.tensionView=e.target.checked; S.dirty=true; };
+$("q").oninput=e=>{ S.q=e.target.value.trim().toLowerCase(); S.dirty=true; };
+window.addEventListener("resize",()=>{resize(); drawParade();});
+try{ matchMedia("(prefers-color-scheme: dark)").addEventListener("change",readColors); }catch(e){}
+new MutationObserver(readColors).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+if(document.fonts) document.fonts.ready.then(()=>{S.dirty=true;});
+
+// 이전 설정 복원 (토큰은 sessionStorage에 남겨둔 경우만)
+try{ const c=JSON.parse(store.get("vault.cfg")||"null"); if(c){ $("gh-repo").value=c.repo||""; $("gh-branch").value=c.branch||"main"; $("gh-prefix").value=c.prefix??"vaults/"; } }catch(e){}
+const savedTok=store.get("vault.token","session"); if(savedTok){ $("gh-token").value=savedTok; $("gh-remember").checked=true; }
+
+/* ======================= 예시 Vault (가상 노트) ======================= */
+const DEMO = [
+["vaults/demo-a.md", `---
+id: demo-a
+title: "예시 A · 딜러 대차대조표 제약과 레포 스프레드"
+short_title: "예시 A · 딜러 제약→레포"
+authors: ["예시 저자"]
+year: 2024
+venue: "예시 저널"
+category: Bond
+access: private
+reader: opus
+read_scope: [introduction, model, conclusion]
+source: { file: "(Bond) 예시, 2024, 딜러 대차대조표 제약과 레포 스프레드, 예시.pdf", drive_id: null, pages: 48 }
+topics: [레포 시장, 딜러 중개]
+keywords: [레포 스프레드, 딜러 대차대조표, 레버리지 비율, 분기말 효과]
+methods: [패널 회귀]
+claims:
+  - { id: c1, text: "레버리지 비율 규제가 강화되면 분기말 레포 스프레드가 확대된다.", evidence: "p.14 §4.1, Table 3" }
+  - { id: c2, text: "효과는 대형 딜러 비중이 높은 담보 시장에서 더 크다.", evidence: "p.19 §4.3" }
+equations:
+  - { id: eq1, section: model, latex: "s_{t}=\\\\alpha+\\\\beta\\\\,LR_{t}+\\\\gamma\\\\,QE_{t}+\\\\varepsilon_{t}", meaning: "s: 레포-OIS 스프레드, LR: 레버리지 비율 제약 강도" }
+references: ["doi:10.0000/demo.leverage", "doi:10.0000/demo.repo-micro"]
+relations:
+  - { target: demo-c, type: supports, claim: c1, confidence: 0.8, note: "분기말 급등 패턴과 일치" }
+open_questions: ["규제 예외 기간에도 스프레드가 줄었는가?"]
+capsule: { summary: "레버리지 비율 제약이 분기말 레포 스프레드를 키운다는 패널 증거." }
+---
+## 요약
+가상의 예시 노트입니다. 서론에서 연구 질문을, 모형 절에서 식 $s_t=\\alpha+\\beta LR_t$를, 결론에서 정책 함의를 정리하는 형식을 보여줍니다.
+
+$$\\beta = \\frac{\\partial s_t}{\\partial LR_t} > 0$$
+`],
+["vaults/demo-b.md", `---
+id: demo-b
+title: "예시 B · 국채 공급 충격과 기간 프리미엄"
+short_title: "예시 B · 공급→기간프리미엄"
+authors: ["예시 저자"]
+year: 2023
+category: Bond
+access: private
+reader: fable
+read_scope: [introduction, model, conclusion]
+source: { file: "(Bond) 예시, 2023, 국채 공급 충격과 기간 프리미엄, 예시.pdf", drive_id: null }
+topics: [기간구조, 국채 공급]
+keywords: [기간 프리미엄, 국채 공급, 듀레이션 위험]
+methods: [어파인 기간구조 모형]
+claims:
+  - { id: c1, text: "듀레이션 공급이 늘면 장기 기간 프리미엄이 상승한다.", evidence: "p.9 §3" }
+equations:
+  - { id: eq1, section: model, latex: "y^{(n)}_{t}=a_{n}+b_{n}^{\\\\top}X_{t}", meaning: "만기 n 수익률의 어파인 표현" }
+references: ["doi:10.0000/demo.affine"]
+relations:
+  - { target: demo-a, type: complements, confidence: 0.5, note: "가격(기간프리미엄) 측면과 중개(레포) 측면" }
+capsule: { summary: "듀레이션 공급 충격이 기간 프리미엄을 올린다는 어파인 모형 결과." }
+---
+가상의 예시 노트입니다.
+`],
+["vaults/demo-c.md", `---
+id: demo-c
+title: "예시 C · 분기말 레포 금리 급등의 미시구조"
+short_title: "예시 C · 분기말 급등"
+authors: ["예시 저자"]
+year: 2022
+category: Bond
+access: team
+reader: astra
+source: { file: "(Bond) 예시, 2022, 분기말 레포 금리 급등의 미시구조, 예시.pdf", drive_id: null }
+topics: [레포 시장]
+keywords: [레포 스프레드, 분기말 효과, 결제 시스템]
+methods: [이벤트 스터디, 패널 회귀]
+claims:
+  - { id: c1, text: "분기말 레포 금리 급등은 일부 딜러의 중개 축소에서 시작된다.", evidence: "p.7 Fig.2" }
+references: ["doi:10.0000/demo.repo-micro"]
+relations: []
+capsule: { summary: "분기말 레포 급등을 딜러 중개 축소로 설명하는 이벤트 스터디." }
+---
+가상의 예시 노트입니다.
+`],
+["vaults/demo-d.md", `---
+id: demo-d
+title: "예시 D · 레포 스프레드는 담보 희소성으로 설명된다"
+short_title: "예시 D · 담보 희소성"
+authors: ["예시 저자"]
+year: 2025
+category: Bond
+access: private
+reader: sol
+source: { file: "(Bond) 예시, 2025, 레포 스프레드는 담보 희소성으로 설명된다, 예시.pdf", drive_id: null }
+topics: [레포 시장, 담보]
+keywords: [레포 스프레드, 담보 희소성, 스페셜니스]
+methods: [구조 VAR]
+claims:
+  - { id: c1, text: "규제 강도를 통제하면 레포 스프레드 변동의 대부분은 담보 희소성으로 설명된다.", evidence: "p.22 Table 5" }
+references: ["doi:10.0000/demo.repo-micro"]
+relations:
+  - { target: demo-a, type: contradicts, claim: c1, confidence: 0.75, note: "같은 현상, 다른 원인(규제 vs 담보)" }
+open_questions: ["두 설명을 동시에 넣은 모형에서 각 기여도는?"]
+capsule: { summary: "레포 스프레드의 주동인은 규제가 아니라 담보 희소성이라는 구조 VAR 결과." }
+---
+가상의 예시 노트입니다.
+`],
+["vaults/demo-e.md", `---
+id: demo-e
+title: "예시 E · 은행 자본규제와 시장조성 유동성"
+short_title: "예시 E · 자본규제→시장조성"
+authors: ["예시 저자"]
+year: 2021
+category: Credit
+access: private
+reader: opus
+source: { file: "(Credit) 예시, 2021, 은행 자본규제와 시장조성 유동성, 예시.pdf", drive_id: null }
+topics: [은행 자본, 시장 유동성]
+keywords: [레버리지 비율, 시장조성, 바젤 III, 딜러 대차대조표]
+methods: [패널 회귀]
+claims:
+  - { id: c1, text: "레버리지 비율이 구속적인 은행일수록 채권 시장조성 재고를 줄인다.", evidence: "p.11 §3.2" }
+references: ["doi:10.0000/demo.leverage"]
+relations:
+  - { target: demo-a, type: supports, confidence: 0.7 }
+  - { target: "lr-exemption", target_title: "레버리지 비율 한시 예외의 효과 (미수집)", type: extends, confidence: 0.5 }
+capsule: { summary: "구속적 레버리지 비율이 은행의 채권 시장조성을 위축시킨다." }
+---
+가상의 예시 노트입니다.
+`],
+["vaults/demo-f.md", `---
+id: demo-f
+title: "예시 F · 커버드 이자율 평가 괴리와 달러 조달"
+short_title: "예시 F · CIP 괴리"
+authors: ["예시 저자"]
+year: 2022
+category: Currency
+access: private
+reader: fable
+source: { file: "(Currency) 예시, 2022, 커버드 이자율 평가 괴리와 달러 조달, 예시.pdf", drive_id: null }
+topics: [FX 스왑, 달러 조달]
+keywords: [CIP, 크로스커런시 베이시스, 달러 조달, 분기말 효과, 레버리지 비율]
+methods: [패널 회귀]
+claims:
+  - { id: c1, text: "분기말에 크로스커런시 베이시스가 확대되며, 이는 은행 대차대조표 비용과 연동된다.", evidence: "p.15 Fig.4" }
+equations:
+  - { id: eq1, section: model, latex: "x_{t}=i^{\\\\$}_{t}-\\\\left(i_{t}+\\\\tfrac{1}{n}\\\\ln\\\\tfrac{F_{t}}{S_{t}}\\\\right)", meaning: "x: CIP 괴리(베이시스)" }
+references: ["doi:10.0000/demo.leverage", "doi:10.0000/demo.cip"]
+relations:
+  - { target: demo-e, type: extends, confidence: 0.65, note: "대차대조표 비용을 FX 스왑 시장으로 확장" }
+capsule: { summary: "CIP 괴리가 분기말 은행 대차대조표 비용과 함께 움직인다." }
+---
+가상의 예시 노트입니다.
+`],
+["vaults/demo-g.md", `---
+id: demo-g
+title: "예시 G · 헤지비용과 해외채권 수요"
+short_title: "예시 G · 헤지비용→해외채권"
+authors: ["예시 저자"]
+year: 2024
+category: Currency
+access: restricted
+reader: opus
+source: { file: "(Currency) 예시, 2024, 헤지비용과 해외채권 수요, 예시.pdf", drive_id: null }
+topics: [FX 헤지, 기관 투자자]
+keywords: [FX 헤지비용, 크로스커런시 베이시스, 보험사 수요, 기간 프리미엄]
+methods: [패널 회귀]
+claims:
+  - { id: c1, text: "헤지비용이 오르면 기관의 헤지 해외채권 수요가 줄고 국내 장기채 수요가 늘어난다.", evidence: "p.18 §5" }
+references: ["doi:10.0000/demo.cip"]
+relations:
+  - { target: demo-f, type: extends, confidence: 0.7 }
+  - { target: demo-b, type: complements, confidence: 0.45 }
+open_questions: ["헤지비용 상승이 국내 기간 프리미엄을 낮추는 크기는?"]
+capsule: { summary: "제한 등급 예시: 캡슐에서 요약이 빠지는지 확인용." }
+---
+가상의 예시 노트입니다.
+`],
+["vaults/demo-h.md", `---
+id: demo-h
+title: "예시 H · 통화정책 충격의 기간구조 전달"
+short_title: "예시 H · 정책충격 전달"
+authors: ["예시 저자"]
+year: 2023
+category: Macro
+access: private
+reader: astra
+source: { file: "(Macro) 예시, 2023, 통화정책 충격의 기간구조 전달, 예시.pdf", drive_id: null }
+topics: [통화정책, 기간구조]
+keywords: [통화정책 충격, 기간 프리미엄, 고빈도 식별]
+methods: [구조 VAR, 고빈도 식별]
+claims:
+  - { id: c1, text: "정책 충격의 장기금리 반응 중 상당 부분은 기간 프리미엄 경로로 전달된다.", evidence: "p.12 Table 2" }
+references: ["doi:10.0000/demo.affine"]
+relations:
+  - { target: demo-b, type: supports, confidence: 0.6 }
+capsule: { summary: "정책 충격이 기간 프리미엄을 통해 장기금리로 전달된다." }
+---
+가상의 예시 노트입니다.
+`],
+["vaults/demo-i.md", `---
+id: demo-i
+title: "예시 I · 자연이자율 추정의 불확실성"
+short_title: "예시 I · r* 불확실성"
+authors: ["예시 저자"]
+year: 2025
+category: Macro
+access: private
+reader: sol
+source: { file: "(Macro) 예시, 2025, 자연이자율 추정의 불확실성, 예시.pdf", drive_id: null }
+topics: [자연이자율]
+keywords: ["r*", 자연이자율, 상태공간]
+methods: [상태공간 모형, 칼만 필터]
+claims:
+  - { id: c1, text: "자연이자율 추정의 신뢰구간은 정책 판단에 쓰기에는 지나치게 넓다.", evidence: "p.20 Fig.6" }
+equations:
+  - { id: eq1, section: model, latex: "r^{*}_{t}=c\\\\,g_{t}+z_{t}", meaning: "g: 추세 성장률, z: 기타 요인" }
+relations: []
+open_questions: ["r* 불확실성이 기간 프리미엄 추정에도 전이되는가?"]
+capsule: { summary: "자연이자율 추정 불확실성이 매우 크다." }
+---
+가상의 예시 노트입니다.
+`]
+];
+
+renderHeroes(); resize(); readColors(); renderChips(); requestAnimationFrame(loop);
+</script>
+</body>
+</html>
