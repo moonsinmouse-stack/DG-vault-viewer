@@ -180,6 +180,14 @@ aside.panel{border-left:2px solid var(--line);background:var(--surface);display:
 .kv a{color:var(--accent)}
 ul.plain{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .claim{background:var(--bg);border-radius:14px;padding:8px 12px}
+.easy{background:var(--bg);border:2px solid var(--accent);border-radius:16px;padding:10px 14px;margin:10px 0 4px;display:grid;gap:7px;font-size:13.5px}
+.easy .one{margin:0;font-family:var(--f-display);font-size:15px;line-height:1.5}
+.easy .row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;align-items:start}
+.easy .k{color:var(--muted);font-size:12px;white-space:nowrap;padding-top:1px}
+.easy ul{margin:0;padding-left:16px}
+.stars{color:var(--accent);letter-spacing:1px}
+.ltable small.one{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.tip-easy{display:block;margin:2px 0}
 .claim small{display:block;color:var(--muted);font-size:11.5px}
 .eq{background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:8px 12px;overflow-x:auto}
 .eq math{font-size:1.05em}
@@ -469,9 +477,20 @@ function parseNote(path, raw){
     kw: lc(fm.keywords), topics: lc(fm.topics), methods: lc(fm.methods),
     refs: arr(fm.references).map(refKey).filter(Boolean), refsRaw: arr(fm.references),
     doi: fm.doi ? "doi:"+String(fm.doi).toLowerCase().replace(/^doi:/,"") : null,
-    rels: arr(fm.relations)
+    rels: arr(fm.relations),
+    easy: easyOf(fm.easy)
   };
 }
+// 쉬운 요약: 읽을지 말지 바로 판단하는 칸 (frontmatter easy). 없으면 null
+function easyOf(e){
+  if(!e || typeof e!=="object") return null;
+  const lv=Math.round(Number(e.level));
+  const o={one:String(e.one_line||"").trim(), why:String(e.why||"").trim(), read:arr(e.read_when).map(String), skip:arr(e.skip_when).map(String),
+    level:lv>=1&&lv<=3?lv:0, levelNote:String(e.level_note||"").trim()};
+  return o.one||o.why||o.read.length||o.skip.length ? o : null;
+}
+const LEVEL_NAME=["","쉬움","보통","어려움"];
+const stars=lv=>lv?"★".repeat(lv)+"☆".repeat(3-lv):"";
 
 /* ======================= 그래프 구성 ======================= */
 function jacc(a,b){ if(!a.length||!b.length) return 0; const A=new Set(a); let i=0; for(const x of new Set(b)) if(A.has(x)) i++; return i/(A.size+new Set(b).size-i); }
@@ -659,7 +678,7 @@ function neighborSet(){
 }
 function matches(n){
   if(!S.q) return true; if(n.ghost) return n.label.toLowerCase().includes(S.q);
-  const t=n.note; return t.title.toLowerCase().includes(S.q)||t.id.toLowerCase().includes(S.q)||t.kw.some(k=>k.includes(S.q))||t.topics.some(k=>k.includes(S.q));
+  const t=n.note; return t.title.toLowerCase().includes(S.q)||t.id.toLowerCase().includes(S.q)||t.kw.some(k=>k.includes(S.q))||t.topics.some(k=>k.includes(S.q))||(t.easy?t.easy.one.toLowerCase().includes(S.q):false);
 }
 /* ---- 손그림 스티커 동물: 범주마다 다른 오리지널 동물 ---- */
 const SEED=new Map();
@@ -856,7 +875,7 @@ cv.addEventListener("pointermove",ev=>{
   const tip=$("tip");
   if(h){ tip.hidden=false; tip.style.left=Math.min(sx+14,S.W-290)+"px"; tip.style.top=(sy+14)+"px";
     tip.innerHTML = h.ghost ? `<strong>Vault 밖 문헌</strong><br>${esc(h.label)}<br><span class="muted">${[h.declaredBy.length?`관계 선언 ${h.declaredBy.length}`:"",h.citedBy.length?`인용 ${h.citedBy.length}`:""].filter(Boolean).join(" · ")}</span>`
-      : `<strong>${esc(h.note.title)}</strong><br><span class="muted">${esc((CATS[h.note.cat]||CATS.Other).label)} · ${esc(h.note.year)} · 연결 ${h.deg}</span>`; }
+      : `<strong>${esc(h.note.title)}</strong>${h.note.easy&&h.note.easy.one?`<br><span class="tip-easy">${esc(h.note.easy.one)}</span>`:""}<br><span class="muted">${esc((CATS[h.note.cat]||CATS.Other).label)} · ${esc(h.note.year)} · 연결 ${h.deg}${h.note.easy&&h.note.easy.level?` · 난이도 ${stars(h.note.easy.level)}`:""}</span>`; }
   else tip.hidden=true;
 });
 function endPtr(ev){
@@ -961,6 +980,7 @@ function renderVault(P){
     <h2>${esc(n.title)}</h2>
     <div class="meta">${n.year?`<span class="tag">${esc(n.year)}</span>`:""}${fm.venue?`<span class="tag">${esc(fm.venue)}</span>`:""}
       <span class="tag acc">${esc(n.access)}</span>${fm.reader?`<span class="tag">정독: ${esc(fm.reader)}</span>`:""}${arr(fm.read_scope).length?`<span class="tag">${esc(arr(fm.read_scope).join("·"))}</span>`:""}</div>
+    ${easyHtml(n.easy)}
     <h3>출처</h3>
     <dl class="kv"><dt>저자</dt><dd>${esc(arr(fm.authors).join(", ")||"—")}</dd><dt>파일</dt><dd class="mono" style="font-size:11.5px">${esc(src.file||"—")}</dd><dt>원본</dt><dd>${drive}</dd><dt>노트</dt><dd class="mono" style="font-size:11.5px">${esc(n.path)}</dd></dl>
     <h3>관계 (${rels.length})</h3>${relHtml}
@@ -1010,20 +1030,32 @@ function renderGaps(P){
     <div class="meta">${G.thinTopics.slice(0,30).map(t=>`<span class="tag">${esc(t)}</span>`).join("")||`<span class="muted">없음</span>`}</div>`;
   bindGo(P);
 }
+function easyHtml(e){
+  if(!e) return "";
+  const li=xs=>`<ul>${xs.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`;
+  return `<div class="easy">
+    ${e.one?`<p class="one">${esc(e.one)}</p>`:""}
+    ${e.why?`<div class="row"><span class="k">왜 중요해</span><div>${esc(e.why)}</div></div>`:""}
+    ${e.read.length?`<div class="row"><span class="k">이럴 때 읽어</span><div>${li(e.read)}</div></div>`:""}
+    ${e.skip.length?`<div class="row"><span class="k">안 읽어도 될 때</span><div>${li(e.skip)}</div></div>`:""}
+    ${e.level?`<div class="row"><span class="k">난이도</span><div><span class="stars" aria-label="${LEVEL_NAME[e.level]}">${stars(e.level)}</span> ${esc(LEVEL_NAME[e.level])}${e.levelNote?` · ${esc(e.levelNote)}`:""}</div></div>`:""}
+  </div>`;
+}
 function renderList(P){
   const rows=S.nodes.filter(n=>!n.ghost && matches(n)).map(n=>{
     const t=n.note;
     return {id:n.id, title:t.title, year:Number(t.year)||0, cat:(CATS[t.cat]||CATS.Other).label, css:(CATS[t.cat]||CATS.Other).css, shape:(CATS[t.cat]||CATS.Other).shape,
       rel:S.edges.filter(e=>e.explicit&&(e.a.id===n.id||e.b.id===n.id)).length,
-      cited:S.edges.filter(e=>e.type==="cites"&&!e.outside&&e.b.id===n.id).length};
+      cited:S.edges.filter(e=>e.type==="cites"&&!e.outside&&e.b.id===n.id).length,
+      one:t.easy?t.easy.one:"", level:t.easy?t.easy.level:0};
   });
   const {key,dir}=S.listSort;
   rows.sort((a,b)=>{ const x=a[key], y=b[key]; return (typeof x==="number"? x-y : String(x).localeCompare(String(y),"ko"))*dir; });
   const th=(k,l,num)=>`<th${num?' style="text-align:right"':""}><button type="button" data-sort="${k}"${key===k?` aria-sort="${dir>0?"ascending":"descending"}"`:""}>${l}${key===k?(dir>0?" ▲":" ▼"):""}</button></th>`;
   P.innerHTML=`<h2>노트 목록</h2><p class="muted" style="margin:0 0 10px">${rows.length}편${S.q?` · 검색어 “${esc(S.q)}”`:""}. 머리글을 눌러 정렬하세요.</p>
-    <div class="lwrap"><table class="ltable"><thead><tr>${th("title","제목")}${th("year","연도",1)}${th("cat","범주")}${th("rel","관계",1)}${th("cited","피인용",1)}</tr></thead>
-    <tbody>${rows.map(r=>`<tr data-go="${esc(r.id)}" tabindex="0"><td>${esc(r.title)}</td><td class="num">${r.year||"—"}</td><td style="white-space:nowrap">${S.mode==="shape"?shapeSVG(r.shape,r.css):`<span class="dot" style="background:var(${r.css})"></span>`}${esc(r.cat)}</td><td class="num">${r.rel}</td><td class="num">${r.cited}</td></tr>`).join("")}</tbody></table></div>`;
-  P.querySelectorAll("[data-sort]").forEach(b=>b.onclick=()=>{ const k=b.dataset.sort; S.listSort = S.listSort.key===k ? {key:k,dir:-S.listSort.dir} : {key:k,dir:(k==="title"||k==="cat")?1:-1}; renderList(P); });
+    <div class="lwrap"><table class="ltable"><thead><tr>${th("title","제목")}${th("level","난이도",1)}${th("year","연도",1)}${th("cat","범주")}${th("rel","관계",1)}${th("cited","피인용",1)}</tr></thead>
+    <tbody>${rows.map(r=>`<tr data-go="${esc(r.id)}" tabindex="0"><td>${esc(r.title)}${r.one?`<small class="one">${esc(r.one)}</small>`:""}</td><td class="num stars">${r.level?stars(r.level):"—"}</td><td class="num">${r.year||"—"}</td><td style="white-space:nowrap">${S.mode==="shape"?shapeSVG(r.shape,r.css):`<span class="dot" style="background:var(${r.css})"></span>`}${esc(r.cat)}</td><td class="num">${r.rel}</td><td class="num">${r.cited}</td></tr>`).join("")}</tbody></table></div>`;
+  P.querySelectorAll("[data-sort]").forEach(b=>b.onclick=()=>{ const k=b.dataset.sort; S.listSort = S.listSort.key===k ? {key:k,dir:-S.listSort.dir} : {key:k,dir:(k==="title"||k==="cat"||k==="level")?1:-1}; renderList(P); });
   bindGo(P);
 }
 function renderStat(){
@@ -1187,6 +1219,13 @@ references:
 relations:
   - { target: demo-c, type: supports, claim: c1, confidence: 0.8, note: "분기말 급등 패턴과 일치", rationale: "C가 이벤트 스터디로 보인 분기말 레포 금리 급등이, A의 패널 회귀에서 레버리지 비율 제약 강도와 함께 커지는 패턴과 일치한다. 서로 다른 방법으로 같은 방향의 결과를 얻었다.", evidence: "A p.14 Table 3 ↔ C p.7 Fig.2" }
 open_questions: ["규제 예외 기간에도 스프레드가 줄었는가?"]
+easy:
+  one_line: "은행 규제가 빡빡해지면 분기 말마다 단기자금(레포) 빌리는 값이 튄다는 가상 예시."
+  why: "규제가 시장 금리에 주는 부작용을 보여 준다."
+  read_when: ["분기말 금리 급등 이유가 궁금할 때", "은행 규제와 단기자금 시장을 볼 때"]
+  skip_when: ["장기 금리 전망이 목적일 때"]
+  level: 2
+  level_note: "회귀분석 기본만 알면 됨"
 capsule: { summary: "레버리지 비율 제약이 분기말 레포 스프레드를 키운다는 패널 증거." }
 ---
 ## 요약
@@ -1357,6 +1396,11 @@ claims:
 references: ["doi:10.0000/demo.affine"]
 relations:
   - { target: demo-b, type: supports, confidence: 0.6 }
+easy:
+  one_line: "기준금리 깜짝 변화가 장기금리로 번지는 길을 따라가 보는 가상 예시."
+  read_when: ["통화정책이 장기금리에 미치는 영향을 볼 때"]
+  level: 3
+  level_note: "VAR·고빈도 식별 지식 필요"
 capsule: { summary: "정책 충격이 기간 프리미엄을 통해 장기금리로 전달된다." }
 ---
 가상의 예시 노트입니다.
