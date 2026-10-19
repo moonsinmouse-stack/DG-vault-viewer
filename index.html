@@ -347,8 +347,9 @@ const SHREW_SVG=`<svg class="shrew" viewBox="0 0 140 120" aria-hidden="true">
 </g></svg>`;
 // 마스코트: 비공개 저장소 theme/mascot.png가 있으면 로그인 후 받아 이 브라우저에 기억하고 땃쥐 대신 사용
 // (store는 아래에서 정의되므로 localStorage를 직접 읽음)
-const mascot=()=>{ let u=null; try{ u=localStorage.getItem("vault.mascot"); }catch(e){} return u ? `<img class="shrew mascot-img" src="${u}" alt="">` : SHREW_SVG; };
-function refreshMascot(){ document.querySelectorAll(".shrew").forEach(el=>el.outerHTML=mascot()); }
+let MASCOT_URL=null;   // 저장소 저장이 막힌 브라우저에서도 이번 세션에는 쓰도록 메모리에도 보관
+const mascot=()=>{ let u=MASCOT_URL; if(!u){ try{ u=localStorage.getItem("vault.mascot"); }catch(e){} } return u ? `<img class="shrew mascot-img" src="${u}" alt="">` : SHREW_SVG; };
+function refreshMascot(){ const want=mascot(); if(want===SHREW_SVG) return; document.querySelectorAll(".shrew").forEach(el=>{ if(el.tagName!=="IMG") el.outerHTML=want; }); }
 document.querySelectorAll("[data-shrew]").forEach(el=>el.outerHTML=mascot());
 
 /* ======================= 내 이미지 칸 ======================= */
@@ -1090,11 +1091,11 @@ async function loadIcons(notes){
   await Promise.all([...want].map(async([key,path])=>{
     try{ const blob=await (await gh(base+encPath(path)+ref,"application/vnd.github.raw+json")).blob();
       if(key.startsWith("login:")){ const f=new File([blob],"x"); store.set("vault.hero"+key.slice(6), await shrinkToDataURL(f)); return; }
-      if(key==="mascot"){ store.set("vault.mascot", await shrinkToDataURL(new File([blob],"x"),240)); refreshMascot(); return; }
+      if(key==="mascot"){ MASCOT_URL=await shrinkToDataURL(new File([blob],"x"),240); store.set("vault.mascot",MASCOT_URL); refreshMascot(); return; }
       const bmp=await createImageBitmap(blob); S.icons.set(key,bmp);
     }catch(e){ console.warn("이미지 로드 실패",path,e.message); }
   }));
-  S.dirty=true;
+  S.dirty=true; refreshMascot();
 }
 function ingest(notes){
   S.notes=new Map(); const seen=new Set();
