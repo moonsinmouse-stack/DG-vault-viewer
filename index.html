@@ -138,6 +138,7 @@ canvas#field.dragging{cursor:grabbing}
 .dock input[type=range]{width:100px}
 .legend-cat{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .legend-cat svg{vertical-align:-2px;margin-right:4px}
+.legend-cat .leg-ic{width:20px;height:20px;object-fit:contain;vertical-align:-5px;margin-right:4px}
 .dock select{border:2px solid var(--line);border-radius:999px;background:var(--surface);padding:1px 6px}
 .rcard{border:2px solid var(--line);border-radius:16px;padding:10px 12px;display:grid;gap:6px;background:var(--surface)}
 .rcards{display:grid;gap:8px}
@@ -1086,9 +1087,13 @@ function renderStat(){
 function renderChips(){
   $("type-chips").innerHTML=Object.entries(TYPES).map(([k,t])=>`<button type="button" class="chip" data-t="${k}" aria-pressed="${S.on.has(k)}" style="color:var(${t.css})"><span class="sw"></span><span style="color:var(--ink)">${t.label}</span></button>`).join("");
   $("type-chips").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{ const k=c.dataset.t; S.on.has(k)?S.on.delete(k):S.on.add(k); c.setAttribute("aria-pressed",String(S.on.has(k))); applyFilters(); });
-  $("legend-cat").innerHTML=Object.values(CATS).map(c=>S.mode==="shape"
+  // 동물·군락 모드: 내 범주 이미지가 있으면 그 이미지를 작게, 없으면 기본 동물 이름을 표시
+  const pics=S.catPics||new Map(), critterMode=S.mode==="animal"||S.mode==="colony";
+  $("legend-cat").innerHTML=Object.entries(CATS).map(([k,c])=>S.mode==="shape"
     ? `<span>${shapeSVG(c.shape,c.css)}${esc(c.label)}</span>`
-    : `<span title="${c.animal}"><span class="dot" style="background:var(${c.css})"></span>${esc(c.label)}${(S.mode==="animal"||S.mode==="colony")?` <span class="muted">${c.animal}</span>`:""}</span>`).join("");
+    : critterMode && pics.get(k)
+    ? `<span><img class="leg-ic" src="${pics.get(k)}" alt="">${esc(c.label)}</span>`
+    : `<span title="${c.animal}"><span class="dot" style="background:var(${c.css})"></span>${esc(c.label)}${critterMode?` <span class="muted">${c.animal}</span>`:""}</span>`).join("");
 }
 
 /* ======================= GitHub 로더 ======================= */
@@ -1120,7 +1125,7 @@ async function loadRepo(){
 }
 // 노드 이미지: 저장소의 theme/theme.json + 노트 frontmatter의 icon 경로
 async function loadIcons(notes){
-  S.icons=new Map(); if(S.demo||!S.token) return;
+  S.icons=new Map(); S.catPics=new Map(); if(S.demo||!S.token){ renderChips(); return; }
   const [o,rp]=S.repo.split("/"), base=`/repos/${encodeURIComponent(o)}/${encodeURIComponent(rp)}/contents/`, ref=`?ref=${encodeURIComponent(S.branch)}`;
   const want=new Map();
   try{ const th=await (await gh(base+"theme/theme.json"+ref,"application/vnd.github.raw+json")).json();
@@ -1152,6 +1157,7 @@ async function loadIcons(notes){
   // 범주 순서·이름과 함께 저장. 내 이미지가 하나도 없으면 지워서 첫 화면 행렬을 숨김
   const parade=Object.keys(CATS).map(k=>({key:k,label:CATS[k].label,url:catPics.get(k)||null}));
   if(catPics.size) store.set("vault.parade",JSON.stringify(parade)); else store.del("vault.parade");
+  S.catPics=catPics; renderChips();
   PARADE=null; S.dirty=true; refreshMascot();
 }
 function ingest(notes){
@@ -1202,7 +1208,7 @@ async function connect(){
   finally{ btn.disabled=false; btn.textContent="Vault 열기"; }
 }
 $("conn").addEventListener("submit",e=>{e.preventDefault(); connect();});
-$("btn-demo").onclick=()=>{ S.icons=new Map(); S.demo=true; S.token=null; showApp(); ingest(DEMO.map(([p,t])=>parseNote(p,t))); };
+$("btn-demo").onclick=()=>{ S.icons=new Map(); S.catPics=new Map(); S.demo=true; S.token=null; showApp(); ingest(DEMO.map(([p,t])=>parseNote(p,t))); };
 $("btn-lock").onclick=lock;
 $("btn-reload").onclick=async()=>{ if(S.demo){ ingest(DEMO.map(([p,t])=>parseNote(p,t))); return; }
   const b=$("btn-reload"); b.disabled=true; try{ const {notes}=await loadRepo(); ingest(notes); loadIcons(notes); }catch(e){ alertInPane(e.message); } finally{ b.disabled=false; } };
